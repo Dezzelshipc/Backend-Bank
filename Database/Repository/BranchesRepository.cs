@@ -38,6 +38,11 @@ namespace Database.Repository
             return _context.Branches;
         }
 
+        public IEnumerable<Branch> GetBranches(int organisationId)
+        {
+            return _context.Branches.Where(a => a.OrganisationId == organisationId);
+        }
+
         public Branch? GetItem(int id)
         {
             return _context.Branches.FirstOrDefault(a => a.Id == id);

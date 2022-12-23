@@ -87,6 +87,33 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        [HttpPost("getServices")]
+        public IActionResult GetServices(string access_token)
+        {
+            var token = TokenManager.ValidateToken(access_token);
+
+            if (token == null || token.Type == true)
+                return BadRequest(new { error = "Invalid token.", isSuccess = false });
+
+            Organisation? organisation = _orgRep.GetOrganisationByLogin(token.Value);
+
+            if (organisation == null)
+                return BadRequest(new { error = "Organisation not found.", isSuccess = false });
+
+            try
+            {
+                return Json(_serRep.GetServices(organisation.Id));
+            }
+            catch
+            {
+                return BadRequest(new
+                {
+                    error = "Error while getting.",
+                    isSuccess = false
+                });
+            }
+        }
+
         [HttpGet("/[controller]/all")]
         public IActionResult GetAll()
         {

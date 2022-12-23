@@ -53,9 +53,23 @@ namespace Database.Logic
             return principal;
         }
 
+        public static TokenModel? ClaimsToTokenModel(IEnumerable<Claim>? claims)
+        {
+            if (claims == null)
+                return null;
 
+            return new TokenModel(claims.First(x => x.Type == "login").Value,
+                    claims.First(x => x.Type == "type").Value == "refresh");
+        }
 
         public static TokenModel? ValidateToken(string token)
+        {
+            var claims = GetTokenClaimsValidate(token);
+
+            return ClaimsToTokenModel(claims);
+        }
+
+        public static IEnumerable<Claim>? GetTokenClaimsValidate(string token)
         {
             if (token == null)
                 return null;
@@ -75,15 +89,10 @@ namespace Database.Logic
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
 
-                foreach (var c in jwtToken.Claims)
-                    Console.WriteLine(c);
-
-                return new TokenModel(jwtToken.Claims.First(x => x.Type == "login").Value,
-                    jwtToken.Claims.First(x => x.Type == "type").Value == "refresh");
+                return jwtToken.Claims;
             }
             catch
             {
-                // return null if validation fails
                 return null;
             }
         }

@@ -1,5 +1,6 @@
 ﻿using Database.Interfaces;
 using Database.Models;
+using Npgsql.Replication.PgOutput;
 
 namespace Database.Repository
 {
@@ -41,6 +42,11 @@ namespace Database.Repository
         public Service? GetItem(int id)
         {
             return _context.Services.FirstOrDefault(a => a.Id == id);
+        }
+
+        public IEnumerable<Service> GetServices(int organisationId)
+        {
+            return _context.Services.Where(a => a.OrganisationId == organisationId);
         }
 
         public void Save()
