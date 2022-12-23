@@ -1,19 +1,15 @@
-﻿using Database.Models; // класс Organisation
-using Database.Interfaces;
+﻿using Database.Interfaces;
+using Database.Logic;
+using Database.Models; // класс Organisation
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/v1/organisation")]
     public class AccountController : Controller
     {
-        // тестовые данные вместо использования базы данных
-        List<Organisation> people = new();
-
         private readonly IOrganisationsRepository _orgRep;
 
         public AccountController(IOrganisationsRepository orgRep)
@@ -21,71 +17,67 @@ namespace Backend_Bank.Controllers
             _orgRep = orgRep;
         }
 
-        [HttpPost("/token")]
-        public IActionResult Token(string username, string password)
+        [HttpPost("authorization")]
+        public IActionResult Authorize(string login, string password)
         {
-            var identity = GetIdentity(username, password);
+            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
+            if (organisation == default)
+                return BadRequest(new { error = "Invalid login or password." });
+
+            var identity = GetIdentity(organisation);
             if (identity == null)
-            {
-                return BadRequest(new { errorText = "Invalid username or password." });
-            }
+                return BadRequest(new { error = "Invalid login or password." });
 
-            var now = DateTime.UtcNow;
-            // создаем JWT-токен
-            var jwt = new JwtSecurityToken(
-                    issuer: AuthOptions.ISSUER,
-                    audience: AuthOptions.AUDIENCE,
-                    notBefore: now,
-                    claims: identity.Claims,
-                    expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME)),
-                    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
-            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+            if ((new PasswordHasher<User>().VerifyHashedPassword(new User(login, password), organisation.Password, password)) == 0)
+                return BadRequest(new { error = "Invalid login or password." });
 
+            return Token(identity.Claims);
+        }
+
+        private IActionResult Token(IEnumerable<Claim> claims)
+        {
             var response = new
             {
-                access_token = encodedJwt,
-                username = identity.Name,
-                ient = identity
+                access_token = TokenGetter.GetAccessToken(claims),
+                refresh_token = TokenGetter.GetRefreshToken(claims)
             };
-
+            
             return Json(response);
         }
 
-        private ClaimsIdentity GetIdentity(string username, string password)
+        private static ClaimsIdentity GetIdentity(Organisation? organisation)
         {
-            Organisation person = people.FirstOrDefault(x => x.Login == username && x.Password == password);
-            if (person != null)
-            {
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, person.Login),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, person.OrgName)
-                };
-                ClaimsIdentity claimsIdentity =
-                new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType,
-                    ClaimsIdentity.DefaultRoleClaimType);
-                return claimsIdentity;
-            }
+            if (organisation == default)
+                return null;
 
-            // если пользователя не найдено
-            return null;
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimsIdentity.DefaultNameClaimType, organisation.Login),
+                new Claim(ClaimsIdentity.DefaultNameClaimType, organisation.OrgName)
+            };
+            ClaimsIdentity claimsIdentity =
+            new ClaimsIdentity(claims, "Token", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultNameClaimType);
+            return claimsIdentity;
         }
 
-        [HttpPost("register")]
-        public IActionResult Rgister(Organisation org)
+        [HttpPost("registration")]
+        public IActionResult Rgister(string login, string password, string orgName, string legalAddress, string genDirector, DateTime foundingDate)
         {
-            if (string.IsNullOrEmpty(org.Login) || string.IsNullOrEmpty(org.Password))
-                return BadRequest(new { errorText = "Invalid username or password." });
+            Organisation org = new(login, password, orgName, legalAddress, genDirector, foundingDate)
+            {
+                Password = new PasswordHasher<User>().HashPassword(new User(login, password), password)
+            };
+
+            if (!org.IsValid())
+                return BadRequest(new { error = "Invalid data." });
+
+            if (_orgRep.GetOrganisationByLogin(login) != default)
+                return BadRequest(new { error = "Organisation already exists." });
 
             _orgRep.Create(org);
             _orgRep.Save();
 
-            var response = new
-            {
-                Login = org.Login,
-                PasswordHasg = new PasswordHasher<Organisation>().HashPassword(org, org.Password)
-            };
-            return Json(response);
+            return Token(GetIdentity(org).Claims);
         }
 
         [HttpGet("/all")]

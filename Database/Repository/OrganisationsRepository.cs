@@ -38,6 +38,11 @@ namespace Database.Repository
             return _context.Organisations.FirstOrDefault(a => a.Id == id);
         }
 
+        public Organisation? GetOrganisationByLogin(string login)
+        {
+            return _context.Organisations.FirstOrDefault(a => a.Login == login);
+        }
+
         public void Save()
         {
             _context.SaveChanges();
