@@ -1,5 +1,8 @@
-﻿namespace Database.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace Database.Models
 {
+    [Index(nameof(Login), IsUnique = true)]
     public class Organisation
     {
         public int Id { get; set; }

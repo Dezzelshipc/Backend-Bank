@@ -28,6 +28,11 @@ namespace Database.Repository
             return true;
         }
 
+        public int Find(Branch branch)
+        {
+            return _context.Branches.FirstOrDefault(a => a.Name == branch.Name && a.OrganisationId == branch.OrganisationId).Id;
+        }
+
         public IEnumerable<Branch> GetAll()
         {
             return _context.Branches;

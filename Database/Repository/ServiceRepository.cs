@@ -28,6 +28,11 @@ namespace Database.Repository
             return true;
         }
 
+        public int Find(Service service)
+        {
+            return _context.Services.FirstOrDefault(a => a.Name == service.Name && a.OrganisationId == service.OrganisationId).Id;
+        }
+
         public IEnumerable<Service> GetAll()
         {
             return _context.Services;

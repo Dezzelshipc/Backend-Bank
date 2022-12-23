@@ -4,5 +4,6 @@ namespace Database.Interfaces
 {
     public interface IBranchesRepository : IRepository<Branch>
     {
+        public int Find(Branch branch);
     }
 }

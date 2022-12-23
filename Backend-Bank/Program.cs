@@ -11,7 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseNpgsql($"Host=localhost;Port=5432;Database=backend_db2;Username=backend_user;Password=backend_pass"));
 builder.Services.AddTransient<IOrganisationsRepository, OrganisationsRepository>();
-//builder.Services.AddTransient<AccountController>();
+builder.Services.AddTransient<IBranchesRepository, BranchesRepository>();
+builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 
 
 builder.Services.AddControllers();
