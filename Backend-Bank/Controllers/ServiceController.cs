@@ -1,6 +1,6 @@
 ﻿using Database.Interfaces;
-using Database.Logic;
 using Database.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend_Bank.Controllers
@@ -17,15 +17,16 @@ namespace Backend_Bank.Controllers
             _orgRep = orgRep;
         }
 
+        [Authorize(Roles = "access")]
         [HttpPost("addService")]
-        public IActionResult AddBranch(string access_token, string serviceName, string description, string percent, string minLoanPeriod, string maxLoanPeriod, bool isOnline)
+        public IActionResult AddBranch(string serviceName, string description, string percent, string minLoanPeriod, string maxLoanPeriod, bool isOnline)
         {
-            var token = TokenManager.ValidateToken(access_token);
+            var login = User.Identity.Name;
 
-            if (token == null || token.Type == true)
+            if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
 
-            Organisation? organisation = _orgRep.GetOrganisationByLogin(token.Value);
+            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
 
             if (organisation == null)
                 return BadRequest(new { error = "Organisation not found.", isSuccess = false });
@@ -54,14 +55,10 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        [Authorize(Roles = "access")]
         [HttpPost("removeService")]
-        public IActionResult RemoveBranch(string access_token, int serviceId)
+        public IActionResult RemoveBranch(int serviceId)
         {
-            var token = TokenManager.ValidateToken(access_token);
-
-            if (token == null || token.Type == true)
-                return BadRequest(new { error = "Invalid token.", isSuccess = false });
-
             Service? service = _serRep.GetItem(serviceId);
 
             if (service == null)
@@ -87,15 +84,16 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        [Authorize(Roles = "access")]
         [HttpPost("getServices")]
-        public IActionResult GetServices(string access_token)
+        public IActionResult GetServices()
         {
-            var token = TokenManager.ValidateToken(access_token);
+            var login = User.Identity.Name;
 
-            if (token == null || token.Type == true)
+            if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
 
-            Organisation? organisation = _orgRep.GetOrganisationByLogin(token.Value);
+            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
 
             if (organisation == null)
                 return BadRequest(new { error = "Organisation not found.", isSuccess = false });
@@ -114,6 +112,7 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        [Authorize(Roles = "access")]
         [HttpGet("/[controller]/all")]
         public IActionResult GetAll()
         {

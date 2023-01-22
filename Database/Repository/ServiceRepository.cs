@@ -1,6 +1,5 @@
 ﻿using Database.Interfaces;
 using Database.Models;
-using Npgsql.Replication.PgOutput;
 
 namespace Database.Repository
 {

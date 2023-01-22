@@ -1,35 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Database.Logic;
-using System.Linq;
+﻿using Database.Logic;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Backend_Bank.Controllers
 {
     [Route("api/v1/token")]
     public class TokenController : Controller
     {
+        [Authorize(Roles = "access")]
         [HttpPost("validate")]
-        public IActionResult GetIdFromToken(string token)
+        public IActionResult GetIdFromToken()
         {
-            var val = TokenManager.ValidateToken(token);
-
-            if (val == null)
-                return BadRequest(new { error = "Invalid token." });
-
-            return Ok(val.Value);
+            return Ok();
         }
 
+        [Authorize(Roles = "refresh")]
         [HttpGet("refresh_token")]
-        public IActionResult GetAccessToken(string refresh_token)
+        public IActionResult GetAccessToken()
         {
-            var claims = TokenManager.GetTokenClaimsValidate(refresh_token);
-            var token = TokenManager.ClaimsToTokenModel(claims);
-
-            if (token == null || !token.Type)
-                return BadRequest(new { error = "Inalid token." });
-
-            claims = claims!.Where(a => a.Type != "type");
-
-            return Json(new { access_token = TokenManager.GetAccessToken(claims) });
+            return Json(new { access_token = TokenManager.GetAccessToken(User.Claims) });
         }
     }
 }

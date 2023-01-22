@@ -1,5 +1,4 @@
-﻿using Database.Models;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -15,7 +14,7 @@ namespace Database.Logic
                     issuer: AuthOptions.ISSUER,
                     audience: AuthOptions.AUDIENCE,
                     notBefore: now,
-                    claims: claims.Append(new Claim("type", "access")),
+                    claims: claims.Append(new Claim(ClaimsIdentity.DefaultRoleClaimType, "access")),
                     expires: now.Add(TimeSpan.FromMinutes(AuthOptions.LIFE_ACCESS)),
                     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             return new JwtSecurityTokenHandler().WriteToken(jwt);
@@ -28,13 +27,13 @@ namespace Database.Logic
                     issuer: AuthOptions.ISSUER,
                     audience: AuthOptions.AUDIENCE,
                     notBefore: now,
-                    claims: claims.Append(new Claim("type", "refresh")),
+                    claims: claims.Append(new Claim(ClaimsIdentity.DefaultRoleClaimType, "refresh")),
                     expires: now.Add(TimeSpan.FromDays(AuthOptions.LIFE_REFRESH)),
                     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             return new JwtSecurityTokenHandler().WriteToken(jwt);
         }
 
-        public static ClaimsPrincipal? GetTokenPrincipal(string token)
+        /*public static ClaimsPrincipal? GetTokenPrincipal(string token)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -95,6 +94,6 @@ namespace Database.Logic
             {
                 return null;
             }
-        }
+        }*/
     }
 }

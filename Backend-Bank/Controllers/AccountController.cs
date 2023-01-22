@@ -1,6 +1,7 @@
 ﻿using Database.Interfaces;
 using Database.Logic;
 using Database.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -28,7 +29,7 @@ namespace Backend_Bank.Controllers
             if (identity == null)
                 return BadRequest(new { error = "Invalid login or password." });
 
-            if ((new PasswordHasher<User>().VerifyHashedPassword(new User(login, password), organisation.Password, password)) == 0)
+            if ((new PasswordHasher<UserModel>().VerifyHashedPassword(new UserModel(login, password), organisation.Password, password)) == 0)
                 return BadRequest(new { error = "Invalid login or password." });
 
             return Token(identity.Claims);
@@ -52,7 +53,7 @@ namespace Backend_Bank.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim("login", organisation.Login)
+                new Claim(ClaimsIdentity.DefaultNameClaimType, organisation.Login)
             };
             return new ClaimsIdentity(claims);
         }
@@ -62,7 +63,7 @@ namespace Backend_Bank.Controllers
         {
             Organisation org = new(login, password, orgName, legalAddress, genDirector, foundingDate)
             {
-                Password = new PasswordHasher<User>().HashPassword(new User(login, password), password)
+                Password = new PasswordHasher<UserModel>().HashPassword(new UserModel(login, password), password)
             };
 
             if (!org.IsValid())
@@ -83,6 +84,7 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        [Authorize(Roles = "access")]
         [HttpPost("removeOrganisation")]
         public IActionResult Remove(string login, string password)
         {
@@ -90,7 +92,7 @@ namespace Backend_Bank.Controllers
             if (organisation == default)
                 return BadRequest(new { error = "Invalid login or password." });
 
-            if ((new PasswordHasher<User>().VerifyHashedPassword(new User(login, password), organisation.Password, password)) == 0)
+            if ((new PasswordHasher<UserModel>().VerifyHashedPassword(new UserModel(login, password), organisation.Password, password)) == 0)
                 return BadRequest(new { error = "Invalid login or password." });
 
             try
@@ -106,6 +108,7 @@ namespace Backend_Bank.Controllers
 
         }
 
+        [Authorize(Roles = "access")]
         [HttpGet("/[controller]/all")]
         public IActionResult GetAll()
         {
@@ -119,15 +122,16 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        [Authorize(Roles = "access")]
         [HttpPost("getPersonalData")]
-        public IActionResult GetPersonalData(string access_token)
+        public IActionResult GetPersonalData()
         {
-            var login = TokenManager.ValidateToken(access_token);
+            var login = User.Identity.Name;
 
-            if (login == null || login.Type == true)
+            if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
 
-            Organisation? organisation = _orgRep.GetOrganisationByLogin(login.Value);
+            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
 
             if (organisation == null)
                 return BadRequest(new { error = "Organisation not found.", isSuccess = false });
@@ -141,15 +145,16 @@ namespace Backend_Bank.Controllers
             });
         }
 
+        [Authorize(Roles = "access")]
         [HttpPost("changePersonalData")]
-        public IActionResult ChangePersonalData(string access_token, string? orgName, string? legalAddress, string? genDirector, DateTime? foundingDate)
+        public IActionResult ChangePersonalData(string? orgName, string? legalAddress, string? genDirector, DateTime? foundingDate)
         {
-            var login = TokenManager.ValidateToken(access_token);
+            var login = User.Identity.Name;
 
-            if (login == null || login.Type == true)
+            if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
 
-            Organisation? organisation = _orgRep.GetOrganisationByLogin(login.Value);
+            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
 
             if (organisation == null)
                 return BadRequest(new { error = "Organisation not found.", isSuccess = false });
