@@ -16,6 +16,7 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
     Port=5432;Database={Environment.GetEnvironmentVariable("POSTGRES_NAME") ?? "backend_db2"};
     Username={Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "backend_user"};
     Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "backend_pass"}"));
+
 builder.Services.AddTransient<IUsersRepository, UsersRepository>();
 builder.Services.AddTransient<IOrganisationsRepository, OrganisationsRepository>();
 builder.Services.AddTransient<IBranchesRepository, BranchesRepository>();
@@ -73,6 +74,12 @@ builder.Services.AddSwaggerGen(opt =>
 
 var app = builder.Build();
 
+using (var serviceScope = app.Services.GetService<IServiceScopeFactory>().CreateScope())
+{
+    var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    context.Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -87,16 +94,5 @@ app.UseCors();
 app.UseAuthorization();
 
 app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-
-    var context = services.GetRequiredService<ApplicationContext>();
-    if (context.Database.GetPendingMigrations().Any())
-    {
-        context.Database.Migrate();
-    }
-}
 
 app.Run();
