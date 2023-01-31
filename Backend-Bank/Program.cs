@@ -11,7 +11,7 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationContext>(options =>
-    options.UseNpgsql($"Host=localhost;Port=5432;Database=backend_db2;Username=backend_user;Password=backend_pass"));
+    options.UseNpgsql($"Host=db;Port=5432;Database={Environment.GetEnvironmentVariable("POSTGRES_NAME")};Username={Environment.GetEnvironmentVariable("POSTGRES_USER")};Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")}"));
 builder.Services.AddTransient<IOrganisationsRepository, OrganisationsRepository>();
 builder.Services.AddTransient<IBranchesRepository, BranchesRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
@@ -63,10 +63,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<ApplicationContext>();
+    if (context.Database.GetPendingMigrations().Any())
+    {
+        context.Database.Migrate();
+    }
+}
 
 app.Run();

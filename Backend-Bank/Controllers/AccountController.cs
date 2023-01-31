@@ -108,7 +108,7 @@ namespace Backend_Bank.Controllers
 
         }
 
-        [Authorize(Roles = "access")]
+        //[Authorize(Roles = "access")]
         [HttpGet("/[controller]/all")]
         public IActionResult GetAll()
         {
