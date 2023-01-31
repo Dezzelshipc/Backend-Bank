@@ -56,7 +56,7 @@ namespace Backend_Bank.Controllers
         }
 
         [Authorize(Roles = "access")]
-        [HttpPost("removeBranch")]
+        [HttpDelete("removeBranch")]
         public IActionResult RemoveBranch(int branchId)
         {
             Branch? branch = _brRep.GetItem(branchId);
@@ -85,7 +85,7 @@ namespace Backend_Bank.Controllers
         }
 
         [Authorize(Roles = "access")]
-        [HttpPost("getBranches")]
+        [HttpGet("getBranches")]
         public IActionResult GetBranches()
         {
             var login = User.Identity.Name;
@@ -113,7 +113,7 @@ namespace Backend_Bank.Controllers
         }
 
         [Authorize(Roles = "access")]
-        [HttpGet("/[controller]/all")]
+        [HttpGet("/api/[controller]/all")]
         public IActionResult GetAll()
         {
             try

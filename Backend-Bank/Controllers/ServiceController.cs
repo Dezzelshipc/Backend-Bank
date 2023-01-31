@@ -56,7 +56,7 @@ namespace Backend_Bank.Controllers
         }
 
         [Authorize(Roles = "access")]
-        [HttpPost("removeService")]
+        [HttpDelete("removeService")]
         public IActionResult RemoveBranch(int serviceId)
         {
             Service? service = _serRep.GetItem(serviceId);
@@ -85,7 +85,7 @@ namespace Backend_Bank.Controllers
         }
 
         [Authorize(Roles = "access")]
-        [HttpPost("getServices")]
+        [HttpGet("getServices")]
         public IActionResult GetServices()
         {
             var login = User.Identity.Name;
@@ -113,7 +113,7 @@ namespace Backend_Bank.Controllers
         }
 
         [Authorize(Roles = "access")]
-        [HttpGet("/[controller]/all")]
+        [HttpGet("/api/[controller]/all")]
         public IActionResult GetAll()
         {
             try

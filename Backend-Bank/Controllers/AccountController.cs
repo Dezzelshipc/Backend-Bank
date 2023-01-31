@@ -85,7 +85,7 @@ namespace Backend_Bank.Controllers
         }
 
         [Authorize(Roles = "access")]
-        [HttpPost("removeOrganisation")]
+        [HttpDelete("removeOrganisation")]
         public IActionResult Remove(string login, string password)
         {
             Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
@@ -109,7 +109,7 @@ namespace Backend_Bank.Controllers
         }
 
         //[Authorize(Roles = "access")]
-        [HttpGet("/[controller]/all")]
+        [HttpGet("/api/[controller]/all")]
         public IActionResult GetAll()
         {
             try
@@ -123,7 +123,7 @@ namespace Backend_Bank.Controllers
         }
 
         [Authorize(Roles = "access")]
-        [HttpPost("getPersonalData")]
+        [HttpGet("getPersonalData")]
         public IActionResult GetPersonalData()
         {
             var login = User.Identity.Name;
