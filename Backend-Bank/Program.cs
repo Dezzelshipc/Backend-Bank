@@ -1,18 +1,22 @@
 using Backend_Bank.Token;
 using Database;
 using Database.Interfaces;
-using Database.Logic;
 using Database.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddDbContext<ApplicationContext>(options =>
-    options.UseNpgsql($"Host=db;Port=5432;Database={Environment.GetEnvironmentVariable("POSTGRES_NAME")};Username={Environment.GetEnvironmentVariable("POSTGRES_USER")};Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")}"));
+    options.UseNpgsql(@$"Host={Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost"};
+    Port=5432;Database={Environment.GetEnvironmentVariable("POSTGRES_NAME") ?? "backend_db2"};
+    Username={Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "backend_user"};
+    Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "backend_pass"}"));
+builder.Services.AddTransient<IUsersRepository, UsersRepository>();
 builder.Services.AddTransient<IOrganisationsRepository, OrganisationsRepository>();
 builder.Services.AddTransient<IBranchesRepository, BranchesRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
@@ -22,6 +26,18 @@ builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins("http://fefu-project.site",
+                    "http://*.fefu-project.site"
+                ).AllowAnyOrigin();
+        });
+
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
@@ -63,6 +79,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors();
 
 //app.UseHttpsRedirection();
 

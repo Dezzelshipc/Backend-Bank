@@ -1,82 +1,60 @@
-﻿using Database.Interfaces;
-using Database.Logic;
+﻿using Backend_Bank.Token;
+using Database.Interfaces;
 using Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
-    [Route("api/v1/organisation")]
+    [Route("api/v1/user")]
     public class AccountController : Controller
     {
-        private readonly IOrganisationsRepository _orgRep;
+        private readonly IUsersRepository _userRep;
+        private readonly IServiceRepository _servRep;
 
-        public AccountController(IOrganisationsRepository orgRep)
+        public AccountController(IUsersRepository userRep, IServiceRepository servRep)
         {
-            _orgRep = orgRep;
+            _userRep = userRep;
+            _servRep = servRep;
         }
 
         [HttpPost("authorization")]
         public IActionResult Authorize(string login, string password)
         {
-            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
-            if (organisation == default)
+            UserModel? user = _userRep.GetUserByLogin(login);
+            if (user == default)
                 return BadRequest(new { error = "Invalid login or password." });
 
-            var identity = GetIdentity(organisation);
+            var identity = TokenManager.GetIdentity(user);
             if (identity == null)
                 return BadRequest(new { error = "Invalid login or password." });
 
-            if ((new PasswordHasher<UserModel>().VerifyHashedPassword(new UserModel(login, password), organisation.Password, password)) == 0)
+            if ((new PasswordHasher<UserModel>().VerifyHashedPassword(new UserModel(login, password), user.Password, password)) == 0)
                 return BadRequest(new { error = "Invalid login or password." });
 
-            return Token(identity.Claims);
-        }
-
-        private IActionResult Token(IEnumerable<Claim> claims)
-        {
-            var response = new
-            {
-                access_token = TokenManager.GetAccessToken(claims),
-                refresh_token = TokenManager.GetRefreshToken(claims)
-            };
-
-            return Json(response);
-        }
-
-        private static ClaimsIdentity GetIdentity(Organisation? organisation)
-        {
-            if (organisation == default)
-                return null;
-
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, organisation.Login)
-            };
-            return new ClaimsIdentity(claims);
+            return Json(TokenManager.Tokens(identity.Claims));
         }
 
         [HttpPost("registration")]
-        public IActionResult Rgister(string login, string password, string orgName, string legalAddress, string genDirector, DateTime foundingDate)
+        public IActionResult Rgister(string login, string password)
         {
-            Organisation org = new(login, password, orgName, legalAddress, genDirector, foundingDate)
+            UserModel user = new(login, password)
             {
                 Password = new PasswordHasher<UserModel>().HashPassword(new UserModel(login, password), password)
             };
 
-            if (!org.IsValid())
+            if (!user.IsValid())
                 return BadRequest(new { error = "Invalid data." });
 
-            if (_orgRep.GetOrganisationByLogin(login) != default)
-                return BadRequest(new { error = "Organisation already exists." });
+            if (_userRep.GetUserByLogin(login) != default)
+                return BadRequest(new { error = "User already exists." });
 
             try
             {
-                _orgRep.Create(org);
-                _orgRep.Save();
-                return Token(GetIdentity(org).Claims);
+                _userRep.Create(user);
+                _userRep.Save();
+                return Json(TokenManager.Tokens(TokenManager.GetIdentity(user).Claims));
             }
             catch
             {
@@ -85,27 +63,35 @@ namespace Backend_Bank.Controllers
         }
 
         [Authorize(Roles = "access")]
-        [HttpDelete("removeOrganisation")]
-        public IActionResult Remove(string login, string password)
+        [HttpPost("verification")]
+        public IActionResult Verify(string phone, string email, string fullname)
         {
-            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
-            if (organisation == default)
-                return BadRequest(new { error = "Invalid login or password." });
+            var login = User.Identity.Name;
+            if (login == null)
+                return BadRequest(new { error = "Invalid token.", isSuccess = false });
 
-            if ((new PasswordHasher<UserModel>().VerifyHashedPassword(new UserModel(login, password), organisation.Password, password)) == 0)
-                return BadRequest(new { error = "Invalid login or password." });
+            UserModel? user = _userRep.GetUserByLogin(login);
+
+            if (user == default)
+                return BadRequest(new { error = "Invalid token.", isSuccess = false });
+
+            if (string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(fullname))
+                return BadRequest(new { error = "Invalid input data.", isSuccess = false });
+
+            user.Phone = phone;
+            user.Email = email;
+            user.FullName = fullname;
 
             try
             {
-                _orgRep.Delete(organisation.Id);
-                _orgRep.Save();
-                return Ok();
+                _userRep.Update(user);
+                _userRep.Save();
+                return Ok(new { isSuccess = 1 });
             }
             catch
             {
-                return BadRequest(new { error = "Error while deleting." });
+                return BadRequest(new { error = "Error while deleting.", isSuccess = false });
             }
-
         }
 
         //[Authorize(Roles = "access")]
@@ -114,7 +100,7 @@ namespace Backend_Bank.Controllers
         {
             try
             {
-                return Json(_orgRep.GetAll());
+                return Json(_userRep.GetAll());
             }
             catch
             {
@@ -131,56 +117,96 @@ namespace Backend_Bank.Controllers
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
 
-            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
+            UserModel? user = _userRep.GetUserByLogin(login);
 
-            if (organisation == null)
-                return BadRequest(new { error = "Organisation not found.", isSuccess = false });
+            if (user == null)
+                return BadRequest(new { error = "User not found.", isSuccess = false });
 
             return Json(new
             {
-                orgName = organisation.OrgName,
-                legalAddress = organisation.LegalAddress,
-                genDirector = organisation.GenDirector,
-                foundingDate = organisation.FoundingDate
+                login = login!,
+                phone = user.Phone,
+                email = user.Email,
+                fullname = user.FullName
             });
         }
 
         [Authorize(Roles = "access")]
         [HttpPost("changePersonalData")]
-        public IActionResult ChangePersonalData(string? orgName, string? legalAddress, string? genDirector, DateTime? foundingDate)
+        public IActionResult ChangePersonalData(string? login, string? phone, string? email, string? fullname)
         {
-            var login = User.Identity.Name;
+            var old_login = User.Identity.Name;
 
-            if (login == null)
+            if (old_login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
 
-            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
+            UserModel? user = _userRep.GetUserByLogin(old_login);
 
-            if (organisation == null)
-                return BadRequest(new { error = "Organisation not found.", isSuccess = false });
+            if (user == null)
+                return BadRequest(new { error = "User not found.", isSuccess = false });
 
-            if (orgName != null)
-                organisation.OrgName = orgName;
+            if (login != null)
+                user.Login = login;
 
-            if (legalAddress != null)
-                organisation.LegalAddress = legalAddress;
+            if (phone != null)
+                user.Phone = phone;
 
-            if (genDirector != null)
-                organisation.GenDirector = genDirector;
+            if (email != null)
+                user.Email = email;
 
-            if (foundingDate != null)
-                organisation.FoundingDate = (DateTime)foundingDate;
+            if (fullname != null)
+                user.FullName = fullname;
 
             try
             {
-                _orgRep.Update(organisation);
-                _orgRep.Save();
-                return Json(new { error = "", isSuccess = true });
+                _userRep.Update(user);
+                _userRep.Save();
+                return Json(new { isSuccess = true });
             }
             catch
             {
                 return BadRequest(new { error = "Error while updating." });
             }
+        }
+
+        [HttpGet("getBranches")]
+        public IActionResult GetNearestBranches(int distance, string position)
+        {
+            return BadRequest(error: "Not yet working");
+        }
+
+        internal class SmallService
+        {
+            public string serviceName { get; set; }
+            public string description { get; set; }
+            public string percent { get; set; }
+            public string minLoanPeriod { get; set; }
+
+            SmallService(Service service)
+            {
+                serviceName = service.Name;
+                description = service.Description;
+                percent = service.Percent;
+                minLoanPeriod = service.MinLoanPeriod;
+            }
+        }
+
+        [HttpGet("getServices")]
+        public IActionResult GetServices(int id)
+        {
+            if (id < 0)
+                return BadRequest(new { error = "Invalid Id." });
+
+            var services = _servRep.GetServices(id);
+
+            return Json(services);
+        }
+
+        //[Authorize(Roles = "access")]
+        [HttpGet("takeLoanOnline")]
+        public IActionResult TakeLoan(int id)
+        {
+            return BadRequest(error: "Not yet working");
         }
     }
 }
