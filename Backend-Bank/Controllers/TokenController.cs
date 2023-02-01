@@ -23,7 +23,7 @@ namespace Backend_Bank.Controllers
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
 
-            return Ok();
+            return Ok(isSuccess: true);
         }
 
         [Authorize]
