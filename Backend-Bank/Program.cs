@@ -35,9 +35,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            policy.WithOrigins("http://fefu-project.site",
-                    "http://*.fefu-project.site"
-                ).AllowAnyOrigin();
+            policy.AllowAnyOrigin();
         });
 
 });
