@@ -24,18 +24,21 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpPost("authorization")]
-        public IActionResult Authorize([FromForm] string login, [FromForm] string password)
+        public IActionResult Authorize([FromBody] Login log)
         {
+            var login = log.login;
+            var password = log.password;
+
             UserModel? user = _userRep.GetUserByLogin(login);
             if (user == default)
-                return BadRequest(new { error = "Invalid login or password." });
+                return BadRequest(new { error = "Invalid login or password.", error_mark = "Not Found" });
 
             var identity = TokenManager.GetIdentity(user);
             if (identity == null)
-                return BadRequest(new { error = "Invalid login or password." });
+                return BadRequest(new { error = "Invalid login or password.", error_mark = "Invalid identity" });
 
             if ((new PasswordHasher<UserModel>().VerifyHashedPassword(new UserModel(login, password), user.Password, password)) == 0)
-                return BadRequest(new { error = "Invalid login or password." });
+                return BadRequest(new { error = "Invalid login or password.", error_mark = "Invalid password" });
 
             var tokens = TokenManager.Tokens(identity.Claims);
 
@@ -58,8 +61,11 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpPost("registration")]
-        public IActionResult Rgister([FromForm] string login, [FromForm] string password)
+        public IActionResult Rgister([FromBody] Login log)
         {
+            var login = log.login;
+            var password = log.password;
+
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
                 return BadRequest(new { error = "Invalid input." });
 
@@ -98,8 +104,15 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("verification")]
-        public IActionResult Verify([FromForm] string phone, [FromForm] string email, [FromForm] string fullname)
+        public IActionResult Verify([FromBody] UserModel userModel)
         {
+            if (!string.IsNullOrEmpty(userModel.Login) || !string.IsNullOrEmpty(userModel.Password))
+                return BadRequest(new { error = "Login and Password must be empty", isSuccess = 0 });
+
+            var phone = userModel.Phone;
+            var email = userModel.Email;
+            var fullname = userModel.FullName;
+
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
 
@@ -172,8 +185,17 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("changePersonalData")]
-        public IActionResult ChangePersonalData([FromForm] string? login, [FromForm] string? phone, [FromForm] string? email, [FromForm] string? fullname)
+        public IActionResult ChangePersonalData([FromBody] UserModel userModel)
         {
+            if (!string.IsNullOrEmpty(userModel.Password))
+                return BadRequest(new { error = "Password must be empty", isSuccess = 0 });
+
+            var login = userModel.Login;
+            var phone = userModel.Phone;
+            var email = userModel.Email;
+            var fullname = userModel.FullName;
+
+
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
 
@@ -215,22 +237,6 @@ namespace Backend_Bank.Controllers
         public IActionResult GetNearestBranches([FromForm] int distance, [FromForm] string position)
         {
             return BadRequest(error: "Not yet working");
-        }
-
-        internal class SmallService
-        {
-            public string serviceName { get; set; }
-            public string description { get; set; }
-            public string percent { get; set; }
-            public string minLoanPeriod { get; set; }
-
-            SmallService(Service service)
-            {
-                serviceName = service.Name;
-                description = service.Description;
-                percent = service.Percent;
-                minLoanPeriod = service.MinLoanPeriod;
-            }
         }
 
         [HttpGet("getServices")]

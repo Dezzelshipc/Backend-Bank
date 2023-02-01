@@ -24,7 +24,6 @@ builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<ITokenRepository, TokenRepository>();
 builder.Services.AddTransient<ILoansRepository, LoansRepository>();
 
-
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
