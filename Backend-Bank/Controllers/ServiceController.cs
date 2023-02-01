@@ -1,4 +1,5 @@
-﻿using Database.Interfaces;
+﻿using Backend_Bank.Token;
+using Database.Interfaces;
 using Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,11 +18,14 @@ namespace Backend_Bank.Controllers
             _orgRep = orgRep;
         }
 
-        [Authorize(Roles = "access")]
+        [Authorize]
         [HttpPost("addService")]
         public IActionResult AddBranch(string serviceName, string description, string percent, string minLoanPeriod, string maxLoanPeriod, bool isOnline)
         {
-            var login = User.Identity.Name;
+            if (!User.Claims.CheckClaim())
+                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
+
+            var login = User.Claims.GetClaim("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
@@ -55,10 +59,13 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize(Roles = "access")]
+        [Authorize]
         [HttpDelete("removeService")]
         public IActionResult RemoveBranch(int serviceId)
         {
+            if (!User.Claims.CheckClaim())
+                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
+
             Service? service = _serRep.GetItem(serviceId);
 
             if (service == null)
@@ -84,11 +91,14 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize(Roles = "access")]
+        [Authorize]
         [HttpGet("getServices")]
         public IActionResult GetServices()
         {
-            var login = User.Identity.Name;
+            if (!User.Claims.CheckClaim())
+                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
+
+            var login = User.Claims.GetClaim("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
@@ -112,8 +122,7 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize(Roles = "access")]
-        [HttpGet("/api/[controller]/all")]
+        [HttpOptions("/api/[controller]/all")]
         public IActionResult GetAll()
         {
             try

@@ -1,6 +1,4 @@
-﻿using Database.Migrations;
-
-namespace Database.Models
+﻿namespace Database.Models
 {
     public class UserModel
     {
@@ -12,7 +10,7 @@ namespace Database.Models
         public string FullName { get; set; }
 
 
-        public UserModel(string login, string password) : this(0, login, password, "" , "", "") { }
+        public UserModel(string login, string password) : this(0, login, password, "", "", "") { }
         public UserModel(string login, string password, string phone, string email, string fullName) : this(0, login, password, phone, email, fullName) { }
         public UserModel(int id, string login, string password, string phone, string email, string fullName)
         {

@@ -12,10 +12,9 @@ namespace Database.Repository
             _context = context;
         }
 
-        public bool Create(UserModel item)
+        public void Create(UserModel item)
         {
             _context.Users.Add(item);
-            return true;
         }
 
         public bool Delete(int id)

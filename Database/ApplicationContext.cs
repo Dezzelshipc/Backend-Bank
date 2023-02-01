@@ -11,6 +11,7 @@ namespace Database
         public DbSet<Branch> Branches { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<Loan> Loans { get; set; }
+        public DbSet<TokenModel> Tokens { get; set; }
 
         public ApplicationContext(DbContextOptions options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -23,11 +24,7 @@ namespace Database
             public ApplicationContext CreateDbContext(string[] args)
             {
                 var optionsBuilder = new DbContextOptionsBuilder<ApplicationContext>();
-                optionsBuilder.UseNpgsql(@$"Host=db;
-                                            Port=5432;
-                                            Database=postgres;
-                                            Username=postgres;
-                                            Password=postgres");
+                optionsBuilder.UseNpgsql(@$"Host=localhost;Port=5432;Database=backend_db2;Username=backend_user;Password=backend_pass");
 
                 return new ApplicationContext(optionsBuilder.Options);
             }

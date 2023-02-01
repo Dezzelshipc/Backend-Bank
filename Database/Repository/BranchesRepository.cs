@@ -12,10 +12,9 @@ namespace Database.Repository
             _context = context;
         }
 
-        public bool Create(Branch item)
+        public void Create(Branch item)
         {
             _context.Branches.Add(item);
-            return true;
         }
 
         public bool Delete(int id)

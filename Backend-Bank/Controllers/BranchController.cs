@@ -1,4 +1,5 @@
-﻿using Database.Interfaces;
+﻿using Backend_Bank.Token;
+using Database.Interfaces;
 using Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,11 +18,14 @@ namespace Backend_Bank.Controllers
             _orgRep = orgRep;
         }
 
-        [Authorize(Roles = "access")]
+        [Authorize]
         [HttpPost("addBranch")]
         public IActionResult AddBranch(string branchName, string branchAddress, string phoneNumber)
         {
-            var login = User.Identity.Name;
+            if (!User.Claims.CheckClaim())
+                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
+
+            var login = User.Claims.GetClaim("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
@@ -55,10 +59,13 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize(Roles = "access")]
+        [Authorize]
         [HttpDelete("removeBranch")]
         public IActionResult RemoveBranch(int branchId)
         {
+            if (!User.Claims.CheckClaim())
+                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
+
             Branch? branch = _brRep.GetItem(branchId);
 
             if (branch == null)
@@ -84,11 +91,14 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize(Roles = "access")]
+        [Authorize]
         [HttpGet("getBranches")]
         public IActionResult GetBranches()
         {
-            var login = User.Identity.Name;
+            if (!User.Claims.CheckClaim())
+                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
+
+            var login = User.Claims.GetClaim("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
@@ -112,8 +122,7 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize(Roles = "access")]
-        [HttpGet("/api/[controller]/all")]
+        [HttpOptions("/api/[controller]/all")]
         public IActionResult GetAll()
         {
             try

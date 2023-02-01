@@ -4,7 +4,6 @@ using Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
@@ -12,10 +11,12 @@ namespace Backend_Bank.Controllers
     public class OrganisationController : Controller
     {
         private readonly IOrganisationsRepository _orgRep;
+        private readonly ITokenRepository _tokRep;
 
-        public OrganisationController(IOrganisationsRepository orgRep)
+        public OrganisationController(IOrganisationsRepository orgRep, ITokenRepository tokRep)
         {
             _orgRep = orgRep;
+            _tokRep = tokRep;
         }
 
         [HttpPost("authorization")]
@@ -32,7 +33,24 @@ namespace Backend_Bank.Controllers
             if ((new PasswordHasher<UserModel>().VerifyHashedPassword(new UserModel(login, password), organisation.Password, password)) == 0)
                 return BadRequest(new { error = "Invalid login or password." });
 
-            return Json(TokenManager.Tokens(identity.Claims));
+            var tokens = TokenManager.Tokens(identity.Claims);
+
+            var old_token = _tokRep.GetTokenById(organisation.Id, ObjectType.User);
+            if (old_token == null)
+                return BadRequest(new { error = "Invalid user. Probably was created before refresh token update" });
+
+            old_token.Token = tokens.Refresh.Claims.GetClaim("nbf");
+
+            try
+            {
+                _tokRep.Update(old_token);
+                _tokRep.Save();
+                return Json(TokenManager.WriteTokens(tokens));
+            }
+            catch
+            {
+                return BadRequest(new { error = "Error with tokens", isSuccess = 0 });
+            }
         }
 
         [HttpPost("registration")]
@@ -49,11 +67,22 @@ namespace Backend_Bank.Controllers
             if (_orgRep.GetOrganisationByLogin(login) != default)
                 return BadRequest(new { error = "Organisation already exists." });
 
+
             try
             {
                 _orgRep.Create(org);
                 _orgRep.Save();
-                return Json(TokenManager.Tokens(TokenManager.GetIdentity(org).Claims));
+
+                var saved_org = _orgRep.GetOrganisationByLogin(org.Login);
+
+                var tokens = TokenManager.Tokens(TokenManager.GetIdentity(saved_org)!.Claims);
+
+                var new_token = new TokenModel(saved_org.Id, ObjectType.Organisation, tokens.Refresh.Claims.GetClaim("nbf"));
+
+                _tokRep.Create(new_token);
+                _tokRep.Save();
+
+                return Json(TokenManager.WriteTokens(tokens));
             }
             catch
             {
@@ -61,10 +90,13 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize(Roles = "access")]
+        [Authorize]
         [HttpDelete("removeOrganisation")]
         public IActionResult Remove(string login, string password)
         {
+            if (!User.Claims.CheckClaim())
+                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
+
             Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
             if (organisation == default)
                 return BadRequest(new { error = "Invalid login or password." });
@@ -85,8 +117,7 @@ namespace Backend_Bank.Controllers
 
         }
 
-        //[Authorize(Roles = "access")]
-        [HttpGet("/api/[controller]/all")]
+        [HttpOptions("/api/[controller]/all")]
         public IActionResult GetAll()
         {
             try
@@ -99,11 +130,14 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize(Roles = "access")]
+        [Authorize]
         [HttpGet("getPersonalData")]
         public IActionResult GetPersonalData()
         {
-            var login = User.Identity.Name;
+            if (!User.Claims.CheckClaim())
+                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
+
+            var login = User.Claims.GetClaim("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
@@ -122,11 +156,14 @@ namespace Backend_Bank.Controllers
             });
         }
 
-        [Authorize(Roles = "access")]
+        [Authorize]
         [HttpPost("changePersonalData")]
         public IActionResult ChangePersonalData(string? orgName, string? legalAddress, string? genDirector, DateTime? foundingDate)
         {
-            var login = User.Identity.Name;
+            if (!User.Claims.CheckClaim())
+                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
+
+            var login = User.Claims.GetClaim("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });

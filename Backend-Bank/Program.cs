@@ -11,16 +11,18 @@ var builder = WebApplication.CreateBuilder(args);
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddDbContext<ApplicationContext>(options =>
-    options.UseNpgsql(@$"Host=db;
+    options.UseNpgsql(@$"Host={Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost"};
                         Port=5432;
-                        Database=postgres;
-                        Username=postgres;
-                        Password=postgres"));
+                        Database={Environment.GetEnvironmentVariable("POSTGRES_NAME") ?? "backend_db2"};
+                        Username={Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "backend_user"};
+                        Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "backend_pass"}"));
 
 builder.Services.AddTransient<IUsersRepository, UsersRepository>();
 builder.Services.AddTransient<IOrganisationsRepository, OrganisationsRepository>();
 builder.Services.AddTransient<IBranchesRepository, BranchesRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
+builder.Services.AddTransient<ITokenRepository, TokenRepository>();
+builder.Services.AddTransient<ILoansRepository, LoansRepository>();
 
 
 builder.Services.AddControllers();

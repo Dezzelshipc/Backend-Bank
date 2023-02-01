@@ -12,10 +12,9 @@ namespace Database.Repository
             _context = context;
         }
 
-        public bool Create(Service item)
+        public void Create(Service item)
         {
             _context.Services.Add(item);
-            return true;
         }
 
         public bool Delete(int id)

@@ -4,7 +4,7 @@
     {
         IEnumerable<T> GetAll();
         T? GetItem(int id);
-        bool Create(T item);
+        void Create(T item);
         bool Update(T item);
         bool Delete(int id);
         void Save();
