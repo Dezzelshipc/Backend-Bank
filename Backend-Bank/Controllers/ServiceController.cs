@@ -20,7 +20,8 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("addService")]
-        public IActionResult AddBranch(string serviceName, string description, string percent, string minLoanPeriod, string maxLoanPeriod, bool isOnline)
+        public IActionResult AddBranch([FromForm] string serviceName, [FromForm] string description, [FromForm] string percent,
+            [FromForm] string minLoanPeriod, [FromForm] string maxLoanPeriod, [FromForm] bool isOnline)
         {
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });

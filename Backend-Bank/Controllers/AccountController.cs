@@ -24,7 +24,7 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpPost("authorization")]
-        public IActionResult Authorize(string login, string password)
+        public IActionResult Authorize([FromForm] string login, [FromForm] string password)
         {
             UserModel? user = _userRep.GetUserByLogin(login);
             if (user == default)
@@ -58,8 +58,11 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpPost("registration")]
-        public IActionResult Rgister(string login, string password)
+        public IActionResult Rgister([FromForm] string login, [FromForm] string password)
         {
+            if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
+                return BadRequest(new { error = "Invalid input." });
+
             UserModel user = new(login, password)
             {
                 Password = new PasswordHasher<UserModel>().HashPassword(new UserModel(login, password), password)
@@ -95,7 +98,7 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("verification")]
-        public IActionResult Verify(string phone, string email, string fullname)
+        public IActionResult Verify([FromForm] string phone, [FromForm] string email, [FromForm] string fullname)
         {
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
@@ -169,7 +172,7 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("changePersonalData")]
-        public IActionResult ChangePersonalData(string? login, string? phone, string? email, string? fullname)
+        public IActionResult ChangePersonalData([FromForm] string? login, [FromForm] string? phone, [FromForm] string? email, [FromForm] string? fullname)
         {
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
@@ -209,7 +212,7 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpGet("getBranches")]
-        public IActionResult GetNearestBranches(int distance, string position)
+        public IActionResult GetNearestBranches([FromForm] int distance, [FromForm] string position)
         {
             return BadRequest(error: "Not yet working");
         }

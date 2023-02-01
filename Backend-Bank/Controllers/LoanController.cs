@@ -18,7 +18,7 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpGet("takeLoanOnline")]
-        public IActionResult TakeLoan(int userId, int serviceId, int amountMonth, int period)
+        public IActionResult TakeLoan([FromForm] int userId, [FromForm] int serviceId, [FromForm] int amountMonth, [FromForm] int period)
         {
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token", isSuccess = 0 });

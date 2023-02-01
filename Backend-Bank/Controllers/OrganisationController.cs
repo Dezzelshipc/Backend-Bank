@@ -20,7 +20,7 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpPost("authorization")]
-        public IActionResult Authorize(string login, string password)
+        public IActionResult Authorize([FromForm] string login, [FromForm] string password)
         {
             Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
             if (organisation == default)
@@ -54,7 +54,8 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpPost("registration")]
-        public IActionResult Rgister(string login, string password, string orgName, string legalAddress, string genDirector, DateTime foundingDate)
+        public IActionResult Rgister([FromForm] string login, [FromForm] string password, [FromForm] string orgName,
+            [FromForm] string legalAddress, [FromForm] string genDirector, [FromForm] DateTime foundingDate)
         {
             Organisation org = new(login, password, orgName, legalAddress, genDirector, foundingDate)
             {
@@ -92,7 +93,7 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpDelete("removeOrganisation")]
-        public IActionResult Remove(string login, string password)
+        public IActionResult Remove([FromForm] string login, [FromForm] string password)
         {
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
@@ -158,7 +159,8 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("changePersonalData")]
-        public IActionResult ChangePersonalData(string? orgName, string? legalAddress, string? genDirector, DateTime? foundingDate)
+        public IActionResult ChangePersonalData([FromForm] string? orgName, [FromForm] string? legalAddress,
+            [FromForm] string? genDirector, [FromForm] DateTime? foundingDate)
         {
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
