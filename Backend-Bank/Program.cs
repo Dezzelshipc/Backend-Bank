@@ -6,16 +6,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
 
 var builder = WebApplication.CreateBuilder(args);
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddDbContext<ApplicationContext>(options =>
-    options.UseNpgsql(@$"Host={Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost"};
-    Port=5432;Database={Environment.GetEnvironmentVariable("POSTGRES_NAME") ?? "backend_db2"};
-    Username={Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "backend_user"};
-    Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "backend_pass"}"));
+    options.UseNpgsql(@$"Host=db;
+                        Port=5432;
+                        Database=postgres;
+                        Username=postgres;
+                        Password=postgres"));
 
 builder.Services.AddTransient<IUsersRepository, UsersRepository>();
 builder.Services.AddTransient<IOrganisationsRepository, OrganisationsRepository>();
@@ -74,12 +74,6 @@ builder.Services.AddSwaggerGen(opt =>
 
 var app = builder.Build();
 
-using (var serviceScope = app.Services.GetService<IServiceScopeFactory>().CreateScope())
-{
-    var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationContext>();
-    context.Database.Migrate();
-}
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -92,7 +86,6 @@ app.UseCors();
 //app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

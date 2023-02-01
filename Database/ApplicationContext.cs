@@ -23,7 +23,11 @@ namespace Database
             public ApplicationContext CreateDbContext(string[] args)
             {
                 var optionsBuilder = new DbContextOptionsBuilder<ApplicationContext>();
-                optionsBuilder.UseNpgsql($"Host=localhost;Port=5432;Database=backend_db2;Username=backend_user;Password=backend_pass");
+                optionsBuilder.UseNpgsql(@$"Host=db;
+                                            Port=5432;
+                                            Database=postgres;
+                                            Username=postgres;
+                                            Password=postgres");
 
                 return new ApplicationContext(optionsBuilder.Options);
             }
