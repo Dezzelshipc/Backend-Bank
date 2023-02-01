@@ -44,7 +44,7 @@ namespace Backend_Bank.Controllers
                 Password = new PasswordHasher<UserModel>().HashPassword(new UserModel(login, password), password)
             };
 
-            if (!user.IsValid())
+            if (!user.IsSemiValid())
                 return BadRequest(new { error = "Invalid data." });
 
             if (_userRep.GetUserByLogin(login) != default)

@@ -18,7 +18,8 @@ namespace Backend_Bank.Controllers
         [HttpGet("refresh_token")]
         public IActionResult GetAccessToken()
         {
-            return Json(new { access_token = TokenManager.GetAccessToken(User.Claims) });
+            return Json(new { access_token = TokenManager.GetAccessToken(User.Claims),
+                              refresh_token = TokenManager.GetAccessToken(User.Claims)});
         }
     }
 }

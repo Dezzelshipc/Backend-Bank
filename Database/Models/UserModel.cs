@@ -33,5 +33,12 @@ namespace Database.Models
                 string.IsNullOrEmpty(Email) ||
                 string.IsNullOrEmpty(FullName));
         }
+
+        public bool IsSemiValid()
+        {
+            return !(Id < 0 ||
+                string.IsNullOrEmpty(Login) ||
+                string.IsNullOrEmpty(Password));
+        }
     }
 }
