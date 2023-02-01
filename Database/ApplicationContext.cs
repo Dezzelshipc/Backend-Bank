@@ -24,7 +24,11 @@ namespace Database
             public ApplicationContext CreateDbContext(string[] args)
             {
                 var optionsBuilder = new DbContextOptionsBuilder<ApplicationContext>();
-                optionsBuilder.UseNpgsql(@$"Host=localhost;Port=5432;Database=backend_db2;Username=backend_user;Password=backend_pass");
+                optionsBuilder.UseNpgsql(@$"Host={Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost"};
+                        Port=5432;
+                        Database={Environment.GetEnvironmentVariable("POSTGRES_NAME") ?? "backend_db2"};
+                        Username={Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "backend_user"};
+                        Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "backend_pass"}");
 
                 return new ApplicationContext(optionsBuilder.Options);
             }
