@@ -41,7 +41,7 @@ namespace Backend_Bank.Controllers
 
             var tokens = TokenManager.Tokens(identity.Claims);
 
-            var old_token = _tokRep.GetTokenById(organisation.Id, ObjectType.User);
+            var old_token = _tokRep.GetTokenById(organisation.Id, ObjectType.Organisation);
             if (old_token == null)
                 return BadRequest(new { error = "Invalid user. Probably was created before refresh token update" });
 
