@@ -44,5 +44,5 @@ jobs:
             cd /bank-core
             docker-compose stop back
             git pull
-            docker-compose build back
+            ./build_back.sh
             docker-compose up -d
