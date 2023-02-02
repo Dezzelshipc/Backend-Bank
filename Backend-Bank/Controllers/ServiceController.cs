@@ -20,9 +20,11 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("addService")]
-        public IActionResult AddBranch([FromForm] string serviceName, [FromForm] string description, [FromForm] string percent,
-            [FromForm] string minLoanPeriod, [FromForm] string maxLoanPeriod, [FromForm] bool isOnline)
+        public IActionResult AddBranch([FromBody] ServiceData serviceData)
         {
+            if (serviceData == null)
+                return BadRequest(new { error = "Invalid input." });
+
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
 
@@ -36,7 +38,8 @@ namespace Backend_Bank.Controllers
             if (organisation == null)
                 return BadRequest(new { error = "Organisation not found.", isSuccess = false });
 
-            Service service = new(organisation.Id, serviceName, description, percent, minLoanPeriod, maxLoanPeriod, isOnline);
+            Service service = new(organisation.Id, serviceData.ServiceName, serviceData.Description,
+                serviceData.Percent, serviceData.MinLoanPeriod, serviceData.MaxLoanPeriod, serviceData.IsOnline);
 
             try
             {
@@ -62,7 +65,7 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpDelete("removeService")]
-        public IActionResult RemoveBranch(int serviceId)
+        public IActionResult RemoveBranch([FromBody] int serviceId)
         {
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });

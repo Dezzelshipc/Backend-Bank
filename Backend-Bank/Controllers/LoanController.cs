@@ -18,12 +18,12 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpGet("takeLoanOnline")]
-        public IActionResult TakeLoan([FromForm] int userId, [FromForm] int serviceId, [FromForm] int amountMonth, [FromForm] int period)
+        public IActionResult TakeLoan([FromBody] LoanData loanData)
         {
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token", isSuccess = 0 });
 
-            Loan loan = new(userId, serviceId, amountMonth, period);
+            Loan loan = new(loanData.UserId, loanData.ServiceId, loanData.AmountMonth, loanData.Period);
 
             try
             {

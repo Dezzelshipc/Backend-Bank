@@ -33,8 +33,13 @@ namespace Backend_Bank.Controllers
             if (!User.Claims.CheckClaim(value: "refresh"))
                 return BadRequest(new { error = "Invalid token. Required refresh", isSuccess = 0 });
 
+            var id_s = User.Claims.GetClaim("Id");
+            var type = User.Claims.GetClaim("Type");
 
-            var token = _tokRep.GetTokenById(int.Parse(User.Claims.GetClaim("Id")), User.Claims.GetClaim("Type").ToObjectType());
+            if (!int.TryParse(id_s, out int id) || type == null)
+                return BadRequest(new { error = "Invalid token", isSuccess = 0 });
+
+            var token = _tokRep.GetTokenById(id, type.ToObjectType());
             if (token == default)
                 return BadRequest(new { error = "Invalid token", isSuccess = 0 });
 
@@ -43,7 +48,7 @@ namespace Backend_Bank.Controllers
 
             var tokens = TokenManager.Tokens(User.Claims);
 
-            token.Token = tokens.Refresh.Claims.GetClaim("nbf");
+            token.Token = tokens.Refresh.Claims.GetClaim("nbf")!;
 
             try
             {

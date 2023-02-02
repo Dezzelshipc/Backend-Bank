@@ -1,11 +1,9 @@
-﻿using Backend_Bank.Converters;
-using Backend_Bank.Token;
+﻿using Backend_Bank.Token;
 using Database.Interfaces;
 using Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
@@ -24,10 +22,13 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpPost("authorization")]
-        public IActionResult Authorize([FromBody] Login log)
+        public IActionResult Authorize([FromBody] LoginModel log)
         {
-            var login = log.login;
-            var password = log.password;
+            if (log == null)
+                return BadRequest(new { error = "Invalid input." });
+
+            var login = log.Login;
+            var password = log.Password;
 
             UserModel? user = _userRep.GetUserByLogin(login);
             if (user == default)
@@ -46,7 +47,7 @@ namespace Backend_Bank.Controllers
             if (old_token == null)
                 return BadRequest(new { error = "Invalid user. Probably was created before refresh token update" });
 
-            old_token.Token = tokens.Refresh.Claims.GetClaim("nbf");
+            old_token.Token = tokens.Refresh.Claims.GetClaim("nbf")!;
 
             try
             {
@@ -61,10 +62,13 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpPost("registration")]
-        public IActionResult Rgister([FromBody] Login log)
+        public IActionResult Rgister([FromBody] LoginModel log)
         {
-            var login = log.login;
-            var password = log.password;
+            if (log == null)
+                return BadRequest(new { error = "Invalid input." });
+
+            var login = log.Login;
+            var password = log.Password;
 
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
                 return BadRequest(new { error = "Invalid input." });
@@ -85,11 +89,11 @@ namespace Backend_Bank.Controllers
                 _userRep.Create(user);
                 _userRep.Save();
 
-                var saved_user = _userRep.GetUserByLogin(user.Login);
+                var saved_user = _userRep.GetUserByLogin(user.Login)!;
 
                 var tokens = TokenManager.Tokens(TokenManager.GetIdentity(saved_user)!.Claims);
 
-                var new_token = new TokenModel(saved_user.Id, ObjectType.User, tokens.Refresh.Claims.GetClaim("nbf"));
+                var new_token = new TokenModel(saved_user.Id, ObjectType.User, tokens.Refresh.Claims.GetClaim("nbf")!);
 
                 _tokRep.Create(new_token);
                 _tokRep.Save();
@@ -104,14 +108,14 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("verification")]
-        public IActionResult Verify([FromBody] UserModel userModel)
+        public IActionResult Verify([FromBody] UserData userData)
         {
-            if (!string.IsNullOrEmpty(userModel.Login) || !string.IsNullOrEmpty(userModel.Password))
-                return BadRequest(new { error = "Login and Password must be empty", isSuccess = 0 });
+            if (userData == null)
+                return BadRequest(new { error = "Invalid input." });
 
-            var phone = userModel.Phone;
-            var email = userModel.Email;
-            var fullname = userModel.FullName;
+            var phone = userData.Phone;
+            var email = userData.Email;
+            var fullname = userData.FullName;
 
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
@@ -185,15 +189,15 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("changePersonalData")]
-        public IActionResult ChangePersonalData([FromBody] UserModel userModel)
+        public IActionResult ChangePersonalData([FromBody] UserFullData userData)
         {
-            if (!string.IsNullOrEmpty(userModel.Password))
-                return BadRequest(new { error = "Password must be empty", isSuccess = 0 });
+            if (userData == null)
+                return BadRequest(new { error = "Invalid input." });
 
-            var login = userModel.Login;
-            var phone = userModel.Phone;
-            var email = userModel.Email;
-            var fullname = userModel.FullName;
+            var login = userData.Login;
+            var phone = userData.Phone;
+            var email = userData.Email;
+            var fullname = userData.FullName;
 
 
             if (!User.Claims.CheckClaim())
@@ -234,13 +238,13 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpGet("getBranches")]
-        public IActionResult GetNearestBranches([FromForm] int distance, [FromForm] string position)
+        public IActionResult GetNearestBranches(int distance, string position)
         {
             return BadRequest(error: "Not yet working");
         }
 
         [HttpGet("getServices")]
-        public IActionResult GetServices(int id)
+        public IActionResult GetServices([FromBody] int id)
         {
             if (id < 0)
                 return BadRequest(new { error = "Invalid Id." });

@@ -20,8 +20,15 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpPost("addBranch")]
-        public IActionResult AddBranch([FromForm] string branchName, [FromForm] string branchAddress, [FromForm] string phoneNumber)
+        public IActionResult AddBranch([FromBody] BranchData branchData)
         {
+            if (branchData == null)
+                return BadRequest(new { error = "Invalid input." });
+
+            var branchName = branchData.BranchName;
+            var branchAddress = branchData.BranchAddress;
+            var phoneNumber = branchData.PhoneNumber;
+
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
 
@@ -61,7 +68,7 @@ namespace Backend_Bank.Controllers
 
         [Authorize]
         [HttpDelete("removeBranch")]
-        public IActionResult RemoveBranch([FromForm] int branchId)
+        public IActionResult RemoveBranch([FromBody] int branchId)
         {
             if (!User.Claims.CheckClaim())
                 return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
