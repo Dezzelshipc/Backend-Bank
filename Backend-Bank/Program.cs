@@ -1,8 +1,12 @@
-using Backend_Bank.Token;
+using Backend_Bank.Requirements;
+using Backend_Bank.Requirements.Handlers;
+using Backend_Bank.Tokens;
 using Database;
 using Database.Interfaces;
+using Database.Models;
 using Database.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -23,6 +27,9 @@ builder.Services.AddTransient<IBranchesRepository, BranchesRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<ITokenRepository, TokenRepository>();
 builder.Services.AddTransient<ILoansRepository, LoansRepository>();
+
+builder.Services.AddTransient<IAuthorizationHandler, ObjectReqHandler>();
+builder.Services.AddTransient<IAuthorizationHandler, TokenReqHandler>();
 
 builder.Services.AddControllers();
 
@@ -65,6 +72,37 @@ builder.Services.AddSwaggerGen(opt =>
         Scheme = "bearer"
     });
     opt.OperationFilter<AuthenticationRequirementsOperationFilter>();
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(Policy.Access, policy =>
+    {
+        policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new TokenRequirement(Token.Access));
+    });
+    options.AddPolicy(Policy.Refresh, policy =>
+    {
+        policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new TokenRequirement(Token.Refresh));
+    });
+
+    options.AddPolicy(Policy.UserAccess, policy =>
+    {
+        policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new ObjectRequirement(ObjectType.User));
+        policy.Requirements.Add(new TokenRequirement(Token.Access));
+    });
+    options.AddPolicy(Policy.OrgAccess, policy =>
+    {
+        policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new ObjectRequirement(ObjectType.Organisation));
+        policy.Requirements.Add(new TokenRequirement(Token.Access));
+    });
 });
 
 var app = builder.Build();

@@ -1,8 +1,10 @@
-﻿using Backend_Bank.Token;
+﻿using Backend_Bank.Requirements;
+using Backend_Bank.Tokens;
 using Database.Interfaces;
 using Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
@@ -18,17 +20,14 @@ namespace Backend_Bank.Controllers
             _orgRep = orgRep;
         }
 
-        [Authorize]
+        [Authorize(Policy.OrgAccess)]
         [HttpPost("addService")]
         public IActionResult AddBranch([FromBody] ServiceData serviceData)
         {
-            if (serviceData == null)
-                return BadRequest(new { error = "Invalid input." });
+            if (serviceData == null || serviceData.IsNotValid())
+                return BadRequest(new { error = "Invalid input.", isSuccess = false });
 
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
-            var login = User.Claims.GetClaim("Login");
+            var login = User.FindFirstValue("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
@@ -63,13 +62,10 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Policy.OrgAccess)]
         [HttpDelete("removeService")]
         public IActionResult RemoveBranch([FromBody] int serviceId)
         {
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
             Service? service = _serRep.GetItem(serviceId);
 
             if (service == null)
@@ -79,11 +75,7 @@ namespace Backend_Bank.Controllers
             {
                 _serRep.Delete(serviceId);
                 _serRep.Save();
-                return Json(new
-                {
-                    error = "",
-                    isSuccess = true
-                });
+                return Json(new { isSuccess = true });
             }
             catch
             {
@@ -95,14 +87,11 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Policy.OrgAccess)]
         [HttpGet("getServices")]
         public IActionResult GetServices()
         {
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
-            var login = User.Claims.GetClaim("Login");
+            var login = User.FindFirstValue("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });

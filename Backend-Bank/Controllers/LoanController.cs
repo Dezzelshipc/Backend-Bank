@@ -1,4 +1,5 @@
-﻿using Backend_Bank.Token;
+﻿using Backend_Bank.Requirements;
+using Backend_Bank.Tokens;
 using Database.Interfaces;
 using Database.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -16,12 +17,12 @@ namespace Backend_Bank.Controllers
             _loanRep = loanRep;
         }
 
-        [Authorize]
-        [HttpGet("takeLoanOnline")]
+        [Authorize(Policy.UserAccess)]
+        [HttpPost("takeLoanOnline")]
         public IActionResult TakeLoan([FromBody] LoanData loanData)
         {
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token", isSuccess = 0 });
+            if (loanData == null || loanData.IsNotValid())
+                return BadRequest(new { error = "Invalid token", isSuccess = false });
 
             Loan loan = new(loanData.UserId, loanData.ServiceId, loanData.AmountMonth, loanData.Period);
 
@@ -29,11 +30,11 @@ namespace Backend_Bank.Controllers
             {
                 _loanRep.Create(loan);
                 _loanRep.Save();
-                return BadRequest(new { isSuccess = 1 });
+                return Ok(new { isSuccess = true });
             }
             catch
             {
-                return BadRequest(new { error = "Error while creating", isSuccess = 0 });
+                return BadRequest(new { error = "Error while creating", isSuccess = false });
             }
         }
 

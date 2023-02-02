@@ -1,5 +1,11 @@
-﻿namespace Backend_Bank
+﻿using Database.Migrations;
+using Database.Models;
+using Microsoft.IdentityModel.Tokens;
+using System.Numerics;
+
+namespace Backend_Bank
 {
+
     public class LoginModel
     {
         public LoginModel(string login, string password)
@@ -10,6 +16,13 @@
 
         public string Login { get; set; }
         public string Password { get; set; }
+
+        public bool IsValid()
+        {
+            return !Login.IsNullOrEmpty() &&
+                !Password.IsNullOrEmpty();
+        }
+        public bool IsNotValid() => !IsValid();
     }
 
     public class UserData
@@ -24,6 +37,14 @@
         public string Phone { get; set; }
         public string Email { get; set; }
         public string FullName { get; set; }
+
+        virtual public bool IsValid()
+        {
+            return !Phone.IsNullOrEmpty() &&
+                !Email.IsNullOrEmpty() &&
+                !FullName.IsNullOrEmpty();
+        }
+        public bool IsNotValid() => !IsValid();
     }
 
     public class UserFullData : UserData
@@ -34,6 +55,12 @@
         }
 
         public string Login { get; set; }
+
+        override public bool IsValid()
+        {
+            return base.IsValid() &&
+                !Login.IsNullOrEmpty();
+        }
     }
 
     public class LoanData
@@ -50,6 +77,15 @@
         public int ServiceId { get; set; }
         public int AmountMonth { get; set; }
         public int Period { get; set; }
+
+        public bool IsValid()
+        {
+            return UserId >= 0 &&
+                 ServiceId >= 0 &&
+                 AmountMonth >= 0 &&
+                 Period >= 0;
+        }
+        public bool IsNotValid() => !IsValid();
     }
 
     public class BranchData
@@ -64,6 +100,14 @@
         public string BranchName { get; set; }
         public string BranchAddress { get; set; }
         public string PhoneNumber { get; set; }
+
+        public bool IsValid()
+        {
+            return !BranchName.IsNullOrEmpty() &&
+                !BranchAddress.IsNullOrEmpty() &&
+                !PhoneNumber.IsNullOrEmpty();
+        }
+        public bool IsNotValid() => !IsValid();
     }
 
     public class OrgData
@@ -99,6 +143,18 @@
         public string LegalAddress { get; set; }
         public string GenDirector { get; set; }
         public DateTime FoundingDate { get; set; }
+
+
+        public bool IsValid()
+        {
+            return !Login.IsNullOrEmpty() &&
+                !Password.IsNullOrEmpty() &&
+                !OrgName.IsNullOrEmpty() &&
+                !LegalAddress.IsNullOrEmpty() &&
+                !GenDirector.IsNullOrEmpty() &&
+                FoundingDate != null;
+        }
+        public bool IsNotValid() => !IsValid();
     }
 
     public class ServiceData
@@ -119,5 +175,16 @@
         public string MinLoanPeriod { get; set; }
         public string MaxLoanPeriod { get; set; }
         public bool IsOnline { get; set; }
+
+        public bool IsValid()
+        {
+            return !ServiceName.IsNullOrEmpty() &&
+                !Description.IsNullOrEmpty() &&
+                !Percent.IsNullOrEmpty() &&
+                !MinLoanPeriod.IsNullOrEmpty() &&
+                !MaxLoanPeriod.IsNullOrEmpty() &&
+                IsOnline != null;
+        }
+        public bool IsNotValid() => !IsValid();
     }
 }

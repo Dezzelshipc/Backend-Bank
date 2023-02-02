@@ -1,8 +1,9 @@
-﻿using Backend_Bank.Token;
+﻿using Backend_Bank.Requirements;
 using Database.Interfaces;
 using Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
@@ -18,21 +19,14 @@ namespace Backend_Bank.Controllers
             _orgRep = orgRep;
         }
 
-        [Authorize]
+        [Authorize(Policy.OrgAccess)]
         [HttpPost("addBranch")]
         public IActionResult AddBranch([FromBody] BranchData branchData)
         {
-            if (branchData == null)
-                return BadRequest(new { error = "Invalid input." });
+            if (branchData == null || branchData.IsNotValid())
+                return BadRequest(new { error = "Invalid input.", isSuccess = false });
 
-            var branchName = branchData.BranchName;
-            var branchAddress = branchData.BranchAddress;
-            var phoneNumber = branchData.PhoneNumber;
-
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
-            var login = User.Claims.GetClaim("Login");
+            var login = User.FindFirstValue("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
@@ -42,7 +36,7 @@ namespace Backend_Bank.Controllers
             if (organisation == null)
                 return BadRequest(new { error = "Organisation not found.", isSuccess = false });
 
-            Branch branch = new(organisation.Id, branchName, branchAddress, phoneNumber);
+            Branch branch = new(organisation.Id, branchData.BranchName, branchData.BranchAddress, branchData.PhoneNumber);
 
             try
             {
@@ -52,7 +46,6 @@ namespace Backend_Bank.Controllers
                 return Json(new
                 {
                     branchId = id,
-                    error = "",
                     isSuccess = true
                 });
             }
@@ -66,13 +59,10 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Policy.OrgAccess)]
         [HttpDelete("removeBranch")]
         public IActionResult RemoveBranch([FromBody] int branchId)
         {
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
             Branch? branch = _brRep.GetItem(branchId);
 
             if (branch == null)
@@ -82,11 +72,7 @@ namespace Backend_Bank.Controllers
             {
                 _brRep.Delete(branchId);
                 _brRep.Save();
-                return Json(new
-                {
-                    error = "",
-                    isSuccess = true
-                });
+                return Json(new { isSuccess = true });
             }
             catch
             {
@@ -98,14 +84,11 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Policy.OrgAccess)]
         [HttpGet("getBranches")]
         public IActionResult GetBranches()
         {
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
-            var login = User.Claims.GetClaim("Login");
+            var login = User.FindFirstValue("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });

@@ -1,9 +1,11 @@
-﻿using Backend_Bank.Token;
+﻿using Backend_Bank.Requirements;
+using Backend_Bank.Tokens;
 using Database.Interfaces;
 using Database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
@@ -24,28 +26,28 @@ namespace Backend_Bank.Controllers
         [HttpPost("authorization")]
         public IActionResult Authorize([FromBody] LoginModel log)
         {
-            if (log == null)
-                return BadRequest(new { error = "Invalid input." });
+            if (log == null || log.IsNotValid())
+                return BadRequest(new { error = "Invalid input.", isSuccess = false });
 
             var login = log.Login;
             var password = log.Password;
 
             UserModel? user = _userRep.GetUserByLogin(login);
             if (user == default)
-                return BadRequest(new { error = "Invalid login or password.", error_mark = "Not Found" });
+                return BadRequest(new { error = "Invalid login or password.", error_mark = "Not Found", isSuccess = false });
 
             var identity = TokenManager.GetIdentity(user);
             if (identity == null)
-                return BadRequest(new { error = "Invalid login or password.", error_mark = "Invalid identity" });
+                return BadRequest(new { error = "Invalid login or password.", error_mark = "Invalid identity", isSuccess = false });
 
             if ((new PasswordHasher<UserModel>().VerifyHashedPassword(new UserModel(login, password), user.Password, password)) == 0)
-                return BadRequest(new { error = "Invalid login or password.", error_mark = "Invalid password" });
+                return BadRequest(new { error = "Invalid login or password.", error_mark = "Invalid password", isSuccess = false });
 
             var tokens = TokenManager.Tokens(identity.Claims);
 
             var old_token = _tokRep.GetTokenById(user.Id, ObjectType.User);
             if (old_token == null)
-                return BadRequest(new { error = "Invalid user. Probably was created before refresh token update" });
+                return BadRequest(new { error = "Invalid user. Probably was created before refresh token update", isSuccess = false });
 
             old_token.Token = tokens.Refresh.Claims.GetClaim("nbf")!;
 
@@ -57,21 +59,18 @@ namespace Backend_Bank.Controllers
             }
             catch
             {
-                return BadRequest(new { error = "Error with tokens", isSuccess = 0 });
+                return BadRequest(new { error = "Error with tokens", isSuccess = false });
             }
         }
 
         [HttpPost("registration")]
         public IActionResult Rgister([FromBody] LoginModel log)
         {
-            if (log == null)
-                return BadRequest(new { error = "Invalid input." });
+            if (log == null || log.IsNotValid())
+                return BadRequest(new { error = "Invalid input.", isSuccess = false });
 
             var login = log.Login;
             var password = log.Password;
-
-            if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
-                return BadRequest(new { error = "Invalid input." });
 
             UserModel user = new(login, password)
             {
@@ -79,10 +78,10 @@ namespace Backend_Bank.Controllers
             };
 
             if (!user.IsSemiValid())
-                return BadRequest(new { error = "Invalid data." });
+                return BadRequest(new { error = "Invalid data.", isSuccess = false });
 
             if (_userRep.GetUserByLogin(login) != default)
-                return BadRequest(new { error = "User already exists." });
+                return BadRequest(new { error = "User already exists.", isSuccess = false });
 
             try
             {
@@ -102,25 +101,18 @@ namespace Backend_Bank.Controllers
             }
             catch
             {
-                return BadRequest(new { error = "Error while creating." });
+                return BadRequest(new { error = "Error while creating.", isSuccess = false });
             }
         }
 
-        [Authorize]
+        [Authorize(Policy.UserAccess)]
         [HttpPost("verification")]
         public IActionResult Verify([FromBody] UserData userData)
         {
-            if (userData == null)
-                return BadRequest(new { error = "Invalid input." });
+            if (userData == null || userData.IsNotValid())
+                return BadRequest(new { error = "Invalid input.", isSuccess = false });
 
-            var phone = userData.Phone;
-            var email = userData.Email;
-            var fullname = userData.FullName;
-
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
-            var login = User.Claims.GetClaim("Login");
+            var login = User.FindFirstValue("Login");
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
 
@@ -129,18 +121,16 @@ namespace Backend_Bank.Controllers
             if (user == default)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
 
-            if (string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(fullname))
-                return BadRequest(new { error = "Invalid input data.", isSuccess = false });
 
-            user.Phone = phone;
-            user.Email = email;
-            user.FullName = fullname;
+            user.Phone = userData.Phone;
+            user.Email = userData.Email;
+            user.FullName = userData.FullName;
 
             try
             {
                 _userRep.Update(user);
                 _userRep.Save();
-                return Ok(new { isSuccess = 1 });
+                return Ok(new { isSuccess = true });
             }
             catch
             {
@@ -161,14 +151,11 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Policy.UserAccess)]
         [HttpGet("getPersonalData")]
         public IActionResult GetPersonalData()
         {
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
-            var login = User.Claims.GetClaim("Login");
+            var login = User.FindFirstValue("Login");
 
             if (login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
@@ -187,23 +174,14 @@ namespace Backend_Bank.Controllers
             });
         }
 
-        [Authorize]
+        [Authorize(Policy.UserAccess)]
         [HttpPost("changePersonalData")]
         public IActionResult ChangePersonalData([FromBody] UserFullData userData)
         {
             if (userData == null)
                 return BadRequest(new { error = "Invalid input." });
 
-            var login = userData.Login;
-            var phone = userData.Phone;
-            var email = userData.Email;
-            var fullname = userData.FullName;
-
-
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
-            var old_login = User.Claims.GetClaim("Login");
+            var old_login = User.FindFirstValue("Login");
 
             if (old_login == null)
                 return BadRequest(new { error = "Invalid token.", isSuccess = false });
@@ -213,17 +191,17 @@ namespace Backend_Bank.Controllers
             if (user == null)
                 return BadRequest(new { error = "User not found.", isSuccess = false });
 
-            if (login != null)
-                user.Login = login;
+            if (userData.Login != null)
+                user.Login = userData.Login;
 
-            if (phone != null)
-                user.Phone = phone;
+            if (userData.Phone != null)
+                user.Phone = userData.Phone;
 
-            if (email != null)
-                user.Email = email;
+            if (userData.Email != null)
+                user.Email = userData.Email;
 
-            if (fullname != null)
-                user.FullName = fullname;
+            if (userData.FullName != null)
+                user.FullName = userData.FullName;
 
             try
             {
@@ -244,7 +222,7 @@ namespace Backend_Bank.Controllers
         }
 
         [HttpGet("getServices")]
-        public IActionResult GetServices([FromBody] int id)
+        public IActionResult GetServices(int id)
         {
             if (id < 0)
                 return BadRequest(new { error = "Invalid Id." });

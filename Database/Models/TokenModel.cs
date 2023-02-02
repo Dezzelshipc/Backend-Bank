@@ -2,6 +2,12 @@
 
 namespace Database.Models
 {
+    public interface Token
+    {
+        public const string Access = "access";
+        public const string Refresh = "refresh";
+    }
+
     [Index(nameof(ObjectId), nameof(Type), IsUnique = true)]
     public class TokenModel
     {

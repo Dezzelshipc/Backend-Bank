@@ -1,16 +1,17 @@
-﻿using Database.Models;
+﻿using Backend_Bank.Requirements;
+using Database.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace Backend_Bank.Token
+namespace Backend_Bank.Tokens
 {
     public static class TokenManager
     {
-        public static bool CheckClaim(this IEnumerable<Claim> claims, string claim = "token", string value = "access")
+       /* public static bool CheckClaim(this IEnumerable<Claim> claims, string claim = "token", string value = Token.Access)
         {
             return claims.Any(c => c.Type == claim && c.Value == value);
-        }
+        }*/
 
         public static JwtSecurityToken GetAccessToken(IEnumerable<Claim> claims)
         {
@@ -22,7 +23,7 @@ namespace Backend_Bank.Token
                     issuer: AuthOptions.ISSUER,
                     audience: AuthOptions.AUDIENCE,
                     notBefore: now,
-                    claims: claims.Append(new Claim("token", "access")),
+                    claims: claims.Append(new Claim("token", Token.Access)),
                     expires: now.Add(TimeSpan.FromHours(AuthOptions.LIFE_ACCESS)),
                     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             return jwt;
@@ -37,7 +38,7 @@ namespace Backend_Bank.Token
                     issuer: AuthOptions.ISSUER,
                     audience: AuthOptions.AUDIENCE,
                     notBefore: now,
-                    claims: claims.Append(new Claim("token", "refresh")),
+                    claims: claims.Append(new Claim("token", Token.Refresh)),
                     expires: now.Add(TimeSpan.FromDays(AuthOptions.LIFE_REFRESH)),
                     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             return jwt;
@@ -71,20 +72,6 @@ namespace Backend_Bank.Token
             return claims.First(c => c.Type == type)?.Value;
         }
 
-        public static ClaimsIdentity? GetIdentity(Organisation? organisation)
-        {
-            if (organisation == default)
-                return null;
-
-            var claims = new List<Claim>
-            {
-                new Claim("Login", organisation.Login),
-                new Claim("Id", organisation.Id.ToString()),
-                new Claim("Type", "1")
-            };
-            return new ClaimsIdentity(claims);
-        }
-
         public static ClaimsIdentity? GetIdentity(UserModel? user)
         {
             if (user == default)
@@ -95,6 +82,20 @@ namespace Backend_Bank.Token
                 new Claim("Login", user.Login),
                 new Claim("Id", user.Id.ToString()),
                 new Claim("Type", "0")
+            };
+            return new ClaimsIdentity(claims);
+        }
+
+        public static ClaimsIdentity? GetIdentity(Organisation? organisation)
+        {
+            if (organisation == default)
+                return null;
+
+            var claims = new List<Claim>
+            {
+                new Claim("Login", organisation.Login),
+                new Claim("Id", organisation.Id.ToString()),
+                new Claim("Type", "1")
             };
             return new ClaimsIdentity(claims);
         }

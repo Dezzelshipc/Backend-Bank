@@ -1,7 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace Backend_Bank.Token
+namespace Backend_Bank.Tokens
 {
     public class AuthOptions
     {

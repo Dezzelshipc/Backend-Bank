@@ -1,8 +1,10 @@
 ﻿using Backend_Bank.Converters;
-using Backend_Bank.Token;
+using Backend_Bank.Requirements;
+using Backend_Bank.Tokens;
 using Database.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
@@ -16,25 +18,25 @@ namespace Backend_Bank.Controllers
             _tokRep = tokRep;
         }
 
-        [Authorize]
+        [Authorize(Policy.Access)]
         [HttpPost("validate")]
-        public IActionResult GetIdFromToken()
+        public IActionResult ValidateAccess()
         {
-            if (!User.Claims.CheckClaim())
-                return BadRequest(new { error = "Invalid token. Required access", isSuccess = 0 });
-
+            return Ok(new { isSuccess = true });
+        }
+        [Authorize(Policy.Refresh)]
+        [HttpPost("validate_refresh")]
+        public IActionResult ValidateRefresh()
+        {
             return Ok(new { isSuccess = true });
         }
 
-        [Authorize]
+        [Authorize(Policy.Refresh)]
         [HttpGet("refresh_token")]
-        public IActionResult GetAccessToken()
+        public IActionResult GetTokens()
         {
-            if (!User.Claims.CheckClaim(value: "refresh"))
-                return BadRequest(new { error = "Invalid token. Required refresh", isSuccess = 0 });
-
-            var id_s = User.Claims.GetClaim("Id");
-            var type = User.Claims.GetClaim("Type");
+            var id_s = User.FindFirstValue("Id");
+            var type = User.FindFirstValue("Type");
 
             if (!int.TryParse(id_s, out int id) || type == null)
                 return BadRequest(new { error = "Invalid token", isSuccess = 0 });
@@ -43,7 +45,7 @@ namespace Backend_Bank.Controllers
             if (token == default)
                 return BadRequest(new { error = "Invalid token", isSuccess = 0 });
 
-            if (token.Token != User.Claims.GetClaim("nbf"))
+            if (token.Token != User.FindFirstValue("nbf"))
                 return BadRequest(new { error = "Invalid token", isSuccess = 0 });
 
             var tokens = TokenManager.Tokens(User.Claims);

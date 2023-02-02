@@ -1,7 +1,7 @@
 ﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Backend_Bank.Token
+namespace Backend_Bank.Tokens
 {
     public class AuthenticationRequirementsOperationFilter : IOperationFilter
     {
