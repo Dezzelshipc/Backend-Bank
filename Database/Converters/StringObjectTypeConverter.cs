@@ -1,6 +1,6 @@
 ﻿using Database.Models;
 
-namespace Backend_Bank.Converters
+namespace Database.Converters
 {
 
     public static class StringObjectTypeConverter

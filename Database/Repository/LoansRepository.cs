@@ -36,6 +36,16 @@ namespace Database.Repository
             return _context.Loans.FirstOrDefault(a => a.Id == id);
         }
 
+        public IEnumerable<Loan> GetLoansByServiceId(int serviceId)
+        {
+            return _context.Loans.Where(a => a.ServiceId == serviceId);
+        }
+
+        public IEnumerable<Loan> GetLoansByUserId(int userId)
+        {
+            return _context.Loans.Where(a => a.UserId == userId);
+        }
+
         public void Save()
         {
             _context.SaveChanges();

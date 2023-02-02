@@ -36,7 +36,8 @@ namespace Backend_Bank.Controllers
             if (organisation == null)
                 return BadRequest(new { error = "Organisation not found.", isSuccess = false });
 
-            Branch branch = new(organisation.Id, branchData.BranchName, branchData.BranchAddress, branchData.PhoneNumber);
+            Branch branch = new(organisation.Id, branchData.BranchName, branchData.BranchAddress,
+                branchData.PhoneNumber, branchData.Coordinates.Longtitude, branchData.Coordinates.Lattitude);
 
             try
             {

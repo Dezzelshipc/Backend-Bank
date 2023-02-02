@@ -215,13 +215,30 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        [Authorize(Policy.UserAccess)]
+        [HttpGet("getOnlineServicesByOrgId")]
+        public IActionResult GetOnlineServicesByOrgId(int orgId)
+        {
+            var services = _servRep.GetServices(orgId);
+            IEnumerable<dynamic> response = services.Select(a => new
+            {
+                id = a.Id,
+                serviceName = a.Name,
+                description = a.Description,
+                percent = a.Percent,
+                minLoanPeriod = a.MinLoanPeriod,
+                maxLoadPeriod = a.MaxLoadPeriod
+            });
+            return Json(response);
+        }
+
         [HttpGet("getBranches")]
-        public IActionResult GetNearestBranches(int distance, string position)
+        public IActionResult GetNearestBranches()//int distance, string position)
         {
             return BadRequest(error: "Not yet working");
         }
 
-        [HttpGet("getServices")]
+        /*[HttpGet("getServices")]
         public IActionResult GetServices(int id)
         {
             if (id < 0)
@@ -230,6 +247,6 @@ namespace Backend_Bank.Controllers
             var services = _servRep.GetServices(id);
 
             return Json(services);
-        }
+        }*/
     }
 }

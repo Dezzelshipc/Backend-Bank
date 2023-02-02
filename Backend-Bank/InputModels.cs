@@ -1,4 +1,5 @@
-﻿using Database.Migrations;
+﻿using Database.Converters;
+using Database.Migrations;
 using Database.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Numerics;
@@ -65,23 +66,20 @@ namespace Backend_Bank
 
     public class LoanData
     {
-        public LoanData(int userId, int serviceId, int amountMonth, int period)
+        public LoanData(int serviceId, int amountMonth, int period)
         {
-            this.UserId = userId;
             this.ServiceId = serviceId;
             this.AmountMonth = amountMonth;
             this.Period = period;
         }
 
-        public int UserId { get; set; }
         public int ServiceId { get; set; }
         public int AmountMonth { get; set; }
         public int Period { get; set; }
 
         public bool IsValid()
         {
-            return UserId >= 0 &&
-                 ServiceId >= 0 &&
+            return ServiceId >= 0 &&
                  AmountMonth >= 0 &&
                  Period >= 0;
         }
@@ -90,22 +88,25 @@ namespace Backend_Bank
 
     public class BranchData
     {
-        public BranchData(string branchName, string branchAddress, string phoneNumber)
+        public BranchData(string branchName, string branchAddress, string phoneNumber, Position coordinates)
         {
-            this.BranchName = branchName;
-            this.BranchAddress = branchAddress;
-            this.PhoneNumber = phoneNumber;
+            BranchName = branchName;
+            BranchAddress = branchAddress;
+            PhoneNumber = phoneNumber;
+            Coordinates = coordinates;
         }
 
         public string BranchName { get; set; }
         public string BranchAddress { get; set; }
         public string PhoneNumber { get; set; }
+        public Position Coordinates { get; set; }
 
         public bool IsValid()
         {
             return !BranchName.IsNullOrEmpty() &&
                 !BranchAddress.IsNullOrEmpty() &&
-                !PhoneNumber.IsNullOrEmpty();
+                !PhoneNumber.IsNullOrEmpty() &&
+                Coordinates.IsValid();
         }
         public bool IsNotValid() => !IsValid();
     }
@@ -186,5 +187,28 @@ namespace Backend_Bank
                 IsOnline != null;
         }
         public bool IsNotValid() => !IsValid();
+    }
+
+    public class LoanNotification
+    {
+        public LoanNotification(int id, string description, string status)
+        {
+            Id = id;
+            Description = description;
+            Status = status;
+        }
+
+        public int Id { get; set; }
+        public string? Description { get; set; }
+        public string? Status { get; set; }
+
+        public bool IsValid()
+        {
+            if (Status != null)
+                return Status.GetStatus() != Loan.Statuses.None;
+            return true;
+        }
+
+        public bool IsNotValid => !IsValid();
     }
 }

@@ -42,6 +42,11 @@ namespace Database.Repository
             return _context.Users.FirstOrDefault(a => a.Login == login);
         }
 
+        public UserModel? GetUserByPhone(string phone)
+        {
+            return _context.Users.FirstOrDefault(a => a.Phone == phone);
+        }
+
         public void Save()
         {
             _context.SaveChanges();
