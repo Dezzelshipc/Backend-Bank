@@ -53,5 +53,13 @@ namespace Database.Repository
             _context.Tokens.Update(item);
             return true;
         }
+        public bool Delete(TokenModel item)
+        {
+            if (item == null)
+                return false;
+
+            _context.Tokens.Remove(item);
+            return true;
+        }
     }
 }

@@ -82,5 +82,14 @@ namespace Database.Repository
             var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
             return radEarth * c;
         }
+
+        public bool Delete(Branch item)
+        {
+            if (item == null)
+                return false;
+
+            _context.Branches.Remove(item);
+            return true;
+        }
     }
 }

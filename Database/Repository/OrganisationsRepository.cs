@@ -52,5 +52,13 @@ namespace Database.Repository
             _context.Organisations.Update(item);
             return true;
         }
+        public bool Delete(Organisation item)
+        {
+            if (item == null)
+                return false;
+
+            _context.Organisations.Remove(item);
+            return true;
+        }
     }
 }

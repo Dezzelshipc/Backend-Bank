@@ -56,5 +56,13 @@ namespace Database.Repository
             _context.Loans.Update(item);
             return true;
         }
+        public bool Delete(Loan item)
+        {
+            if (item == null)
+                return false;
+
+            _context.Loans.Remove(item);
+            return true;
+        }
     }
 }

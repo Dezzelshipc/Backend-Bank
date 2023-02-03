@@ -3,7 +3,7 @@
 namespace Database.Models
 {
     [Index(nameof(Login), IsUnique = true)]
-    public class Organisation
+    public class Organisation : IModel
     {
         public int Id { get; set; }
         public string Login { get; set; }

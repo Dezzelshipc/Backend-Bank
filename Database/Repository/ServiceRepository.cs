@@ -57,5 +57,13 @@ namespace Database.Repository
             _context.Services.Update(item);
             return true;
         }
+        public bool Delete(Service item)
+        {
+            if (item == null)
+                return false;
+
+            _context.Services.Remove(item);
+            return true;
+        }
     }
 }

@@ -3,7 +3,7 @@
 namespace Database.Models
 {
 
-    public class Loan
+    public class Loan : IModel
     {
         public Loan(int id, int userId, int serviceId, int amount, int period, string desctiption, Statuses status)
         {

@@ -9,7 +9,7 @@ namespace Database.Models
     }
 
     [Index(nameof(ObjectId), nameof(Type), IsUnique = true)]
-    public class TokenModel
+    public class TokenModel : IModel
     {
         public TokenModel(int id, int objectId, ObjectType type, string token)
         {

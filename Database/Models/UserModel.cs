@@ -1,6 +1,6 @@
 ﻿namespace Database.Models
 {
-    public class UserModel
+    public class UserModel : IModel
     {
         public int Id { get; set; }
         public string Login { get; set; }

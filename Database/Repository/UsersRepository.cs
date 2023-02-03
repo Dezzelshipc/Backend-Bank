@@ -57,5 +57,13 @@ namespace Database.Repository
             _context.Users.Update(item);
             return true;
         }
+        public bool Delete(UserModel item)
+        {
+            if (item == null)
+                return false;
+
+            _context.Users.Remove(item);
+            return true;
+        }
     }
 }

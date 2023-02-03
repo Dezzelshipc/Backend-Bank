@@ -3,7 +3,7 @@
 namespace Database.Models
 {
     [Index(nameof(OrganisationId), nameof(Name), IsUnique = true)]
-    public class Service
+    public class Service : IModel
     {
         public Service(int organisationId, string name, string description, string percent, string minLoanPeriod, string maxLoadPeriod, bool isOnline)
         {

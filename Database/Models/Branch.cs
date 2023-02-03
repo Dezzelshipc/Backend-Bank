@@ -3,7 +3,7 @@
 namespace Database.Models
 {
     [Index(nameof(OrganisationId), nameof(Name), IsUnique = true)]
-    public class Branch
+    public class Branch : IModel
     {
         public Branch(int id, int organisationId, string name, string address, string phoneNumber, double longtitude, double latitude)
         {
