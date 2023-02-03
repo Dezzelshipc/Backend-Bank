@@ -7,6 +7,9 @@ using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
+    /// <response code="400">If error occured or provided data is invalid</response>
+    /// <response code="401">If token not provided</response>
+    /// <response code="403">If token is invalid</response>
     [Route("api/v1/organisation")]
     public class BranchController : Controller
     {
@@ -19,6 +22,15 @@ namespace Backend_Bank.Controllers
             _orgRep = orgRep;
         }
 
+        /// <summary>
+        /// Adds branch for current organisation
+        /// </summary>
+        /// <param name="branchData"></param>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// 
+        /// Retturns { int branchId }
+        /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpPost("addBranch")]
         public IActionResult AddBranch([FromBody] BranchData branchData)
@@ -37,7 +49,7 @@ namespace Backend_Bank.Controllers
                 return BadRequest(new { error = "Organisation not found.", isSuccess = false });
 
             Branch branch = new(organisation.Id, branchData.BranchName, branchData.BranchAddress,
-                branchData.PhoneNumber, branchData.Coordinates.Longtitude, branchData.Coordinates.Lattitude);
+                branchData.PhoneNumber, branchData.Coordinates.Longtitude, branchData.Coordinates.Latitude);
 
             try
             {
@@ -60,6 +72,13 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Removes branch of current organisation
+        /// </summary>
+        /// <param name="branchId"></param>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpDelete("removeBranch")]
         public IActionResult RemoveBranch([FromBody] int branchId)
@@ -68,6 +87,19 @@ namespace Backend_Bank.Controllers
 
             if (branch == null)
                 return BadRequest(new { error = "Branch not exists.", isSuccess = false });
+
+            var login = User.FindFirstValue("Login");
+
+            if (login == null)
+                return BadRequest(new { error = "Invalid token.", isSuccess = false });
+
+            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
+
+            if (organisation == null)
+                return BadRequest(new { error = "Organisation not found.", isSuccess = false });
+
+            if (branch.OrganisationId != organisation.Id)
+                return BadRequest(new { error = "Branch of different organisation.", isSuccess = false });
 
             try
             {
@@ -85,6 +117,14 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns branches of current organisation
+        /// </summary>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// 
+        /// Returns [{ int id, int organisationId, str name, str address, str phoneNumber, double longtitude, double latitude}]
+        /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpGet("getBranches")]
         public IActionResult GetBranches()

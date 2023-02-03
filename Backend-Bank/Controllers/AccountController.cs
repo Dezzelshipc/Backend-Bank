@@ -9,6 +9,7 @@ using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
+    /// <response code="400">If error occured or provided data is invalid</response>
     [Route("api/v1/user")]
     public class AccountController : Controller
     {
@@ -27,6 +28,11 @@ namespace Backend_Bank.Controllers
             _orgRep = orgRep;
         }
 
+        /// <summary>
+        /// Authorizes user
+        /// </summary>
+        /// <param name="log"></param>
+        /// <remarks>Returns Access and Refresh User tokens</remarks>
         [HttpPost("authorization")]
         public IActionResult Authorize([FromBody] LoginModel log)
         {
@@ -67,6 +73,11 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Registers new user
+        /// </summary>
+        /// <param name="log"></param>
+        /// <remarks>Returns Access and Refresh User tokens</remarks>
         [HttpPost("registration")]
         public IActionResult Rgister([FromBody] LoginModel log)
         {
@@ -109,6 +120,16 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Verifies user
+        /// </summary>
+        /// <param name="userData"></param>
+        /// <remarks>
+        /// Requires User Access token
+        /// </remarks>
+        /// <returns>isSuccess = true</returns>
+        /// <response code="401">If token not provided</response>
+        /// <response code="403">If token is invalid</response>
         [Authorize(Policy.UserAccess)]
         [HttpPost("verification")]
         public IActionResult Verify([FromBody] UserData userData)
@@ -155,6 +176,16 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns user personal data
+        /// </summary>
+        /// <remarks>
+        /// Requires User Access token
+        /// 
+        /// Returns { login, phone, email, fullname }
+        /// </remarks>
+        /// <response code="401">If token not provided</response>
+        /// <response code="403">If token is invalid</response>
         [Authorize(Policy.UserAccess)]
         [HttpGet("getPersonalData")]
         public IActionResult GetPersonalData()
@@ -178,6 +209,17 @@ namespace Backend_Bank.Controllers
             });
         }
 
+        /// <summary>
+        /// Changes user personal data user
+        /// </summary>
+        /// <remarks>
+        /// Requires User Access token
+        /// </remarks>
+        /// <returns>
+        /// isSuccess = true
+        /// </returns>
+        /// <response code="401">If token not provided</response>
+        /// <response code="403">If token is invalid</response>
         [Authorize(Policy.UserAccess)]
         [HttpPost("changePersonalData")]
         public IActionResult ChangePersonalData([FromBody] UserFullData userData)
@@ -219,6 +261,17 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns every service with organisation Id
+        /// </summary>
+        /// <param name="orgId"></param>
+        /// <remarks>
+        /// Requires User Access token
+        /// 
+        /// Returns  { int id, str serviceName, str description, str percent, str minLoanPeriod, str maxLoadPeriod }
+        /// </remarks>
+        /// <response code="401">If token not provided</response>
+        /// <response code="403">If token is invalid</response>
         [Authorize(Policy.UserAccess)]
         [HttpGet("getOnlineServicesByOrgId")]
         public IActionResult GetOnlineServicesByOrgId(int orgId)
@@ -236,6 +289,20 @@ namespace Backend_Bank.Controllers
             return Json(response);
         }
 
+        /// <summary>
+        /// Returns every branch on distance in km from coordinates
+        /// </summary>
+        /// <param name="distanceKm"></param>
+        /// <param name="position"></param>
+        /// <remarks>
+        /// abs(Longitiude) not greater 180
+        /// 
+        /// abs(Latitude) not greater 90
+        /// 
+        /// Returns [{ int id, int organisationId, str name, str address, str phoneNumber, double longtitude, double latitude }]
+        /// </remarks>
+        /// <response code="401">If token not provided</response>
+        /// <response code="403">If token is invalid</response>
         [HttpGet("getBranchesOnDistance")]
         public IActionResult GetNearestBranches(double distanceKm, Position position)
         {
@@ -244,7 +311,16 @@ namespace Backend_Bank.Controllers
             return Json(response);
         }
 
-
+        /// <summary>
+        /// Returns every organisation
+        /// </summary>
+        /// <remarks>
+        /// Requires User Access token
+        /// 
+        /// Returns [{ int id, str orgName, str name, str legalAddress, str genDirector, str-datetime foundingDate }]
+        /// </remarks>
+        /// <response code="401">If token not provided</response>
+        /// <response code="403">If token is invalid</response>
         [Authorize(Policy.UserAccess)]
         [HttpGet("getAllOrganisations")]
         public IActionResult GetAllOrgs()

@@ -8,6 +8,9 @@ using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
+    /// <response code="400">If error occured or provided data is invalid</response>
+    /// <response code="401">If token not provided</response>
+    /// <response code="403">If token is invalid</response>
     [Route("api/v1/organisation")]
     public class ServiceController : Controller
     {
@@ -20,9 +23,17 @@ namespace Backend_Bank.Controllers
             _orgRep = orgRep;
         }
 
+        /// <summary>
+        /// Adds service for current organistion
+        /// </summary>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// 
+        /// Returns { serviceId }
+        /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpPost("addService")]
-        public IActionResult AddBranch([FromBody] ServiceData serviceData)
+        public IActionResult AddService([FromBody] ServiceData serviceData)
         {
             if (serviceData == null || serviceData.IsNotValid())
                 return BadRequest(new { error = "Invalid input.", isSuccess = false });
@@ -47,7 +58,7 @@ namespace Backend_Bank.Controllers
                 var id = _serRep.Find(service);
                 return Json(new
                 {
-                    branchId = id,
+                    serviceId = id,
                     isSuccess = true
                 });
             }
@@ -61,14 +72,33 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Removes service for current organistion by id
+        /// </summary>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpDelete("removeService")]
-        public IActionResult RemoveBranch([FromBody] int serviceId)
+        public IActionResult RemoveService([FromBody] int serviceId)
         {
             Service? service = _serRep.GetItem(serviceId);
 
             if (service == null)
                 return BadRequest(new { error = "Service not exists.", isSuccess = false });
+
+            var login = User.FindFirstValue("Login");
+
+            if (login == null)
+                return BadRequest(new { error = "Invalid token.", isSuccess = false });
+
+            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
+
+            if (organisation == null)
+                return BadRequest(new { error = "Organisation not found.", isSuccess = false });
+
+            if (service.OrganisationId != organisation.Id)
+                return BadRequest(new { error = "Service of different organisation.", isSuccess = false });
 
             try
             {
@@ -86,6 +116,14 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Return all services for current organistion
+        /// </summary>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// 
+        /// Returns [{ int id, int organisationId, str name, str description, str percent, str minLoanPeriod, str maxLoadPeriod, bool isOnline; }]
+        /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpGet("getServices")]
         public IActionResult GetServices()

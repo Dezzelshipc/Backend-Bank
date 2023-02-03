@@ -8,7 +8,9 @@ using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
-
+    /// <response code="400">If error occured or provided data is invalid</response>
+    /// <response code="401">If token not provided</response>
+    /// <response code="403">If token is invalid</response>
     public class LoanController : Controller
     {
         protected readonly IUsersRepository _userRep;
@@ -37,6 +39,12 @@ namespace Backend_Bank.Controllers
     {
         public LoanUserController(IUsersRepository userRep, ILoansRepository loanRep) : base(userRep, loanRep) { }
 
+        /// <summary>
+        /// Saves loan notification
+        /// </summary>
+        /// <remarks>
+        /// Requires User Access token
+        /// </remarks>
         [Authorize(Policy.UserAccess)]
         [HttpPost("takeLoanOnline")]
         public IActionResult TakeLoan([FromBody] LoanData loanData)
@@ -62,6 +70,12 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns all notifications by user phone number
+        /// </summary>
+        /// <remarks>
+        /// Returns [{ int notificationId, int userId, str description, str status }]
+        /// </remarks>
         [HttpGet("getAllNotification")]
         public IActionResult GetAllNotification(string phone)
         {
@@ -87,6 +101,12 @@ namespace Backend_Bank.Controllers
     {
         public LoanOrganisationController(IUsersRepository userRep, ILoansRepository loanRep) : base(userRep, loanRep) { }
 
+        /// <summary>
+        /// Changes notification
+        /// </summary>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpPost("changeNotification")]
         public IActionResult ChangeNotification([FromBody] LoanNotification loanChange)
@@ -113,6 +133,14 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns all notifications by service id
+        /// </summary>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// 
+        /// Returns [{ int id, int userId, int serviceId, int amount, int period, int desctiption, int status }]
+        /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpGet("getAllLoansByServiceId")]
         public IActionResult ChangeNotification(int serviceId)
@@ -120,6 +148,12 @@ namespace Backend_Bank.Controllers
             return Json(_loanRep.GetLoansByServiceId(serviceId).Select(a => a.WithFormatStatus()));
         }
 
+        /// <summary>
+        /// Removes notification by id
+        /// </summary>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpDelete("removeNotification")]
         public IActionResult RemoveNotification([FromBody] int notificationId)

@@ -5,7 +5,7 @@ namespace Database.Models
     [Index(nameof(OrganisationId), nameof(Name), IsUnique = true)]
     public class Branch
     {
-        public Branch(int id, int organisationId, string name, string address, string phoneNumber, double longtitude, double lattitude)
+        public Branch(int id, int organisationId, string name, string address, string phoneNumber, double longtitude, double latitude)
         {
             Id = id;
             OrganisationId = organisationId;
@@ -13,11 +13,11 @@ namespace Database.Models
             Address = address;
             PhoneNumber = phoneNumber;
             Longtitude = longtitude;
-            Lattitude = lattitude;
+            Latitude = latitude;
         }
 
-        public Branch(int organisationId, string name, string address, string phoneNumber, double longtitude, double lattitude)
-            : this(0, organisationId, name, address, phoneNumber, longtitude, lattitude) { }
+        public Branch(int organisationId, string name, string address, string phoneNumber, double longtitude, double latitude)
+            : this(0, organisationId, name, address, phoneNumber, longtitude, latitude) { }
 
         public int Id { get; set; }
         public int OrganisationId { get; set; }
@@ -25,18 +25,18 @@ namespace Database.Models
         public string Address { get; set; }
         public string PhoneNumber { get; set; }
         public double Longtitude { get; set; }
-        public double Lattitude { get; set; }
+        public double Latitude { get; set; }
     }
 
     public class Position
     {
         public double Longtitude { get; set; }
-        public double Lattitude { get; set; }
+        public double Latitude { get; set; }
 
-        public Position(double longtitude, double lattitude)
+        public Position(double longtitude, double latitude)
         {
             Longtitude = longtitude;
-            Lattitude = lattitude;
+            Latitude = latitude;
         }
 
         public Position() { }
@@ -44,7 +44,7 @@ namespace Database.Models
         public bool IsValid()
         {
             return Math.Abs(Longtitude) <= 180 &&
-                Math.Abs(Lattitude) <= 90;
+                Math.Abs(Latitude) <= 90;
         }
     }
 }

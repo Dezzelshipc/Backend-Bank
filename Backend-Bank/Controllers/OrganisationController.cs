@@ -9,6 +9,7 @@ using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
+    /// <response code="400">If error occured or provided data is invalid</response>
     [Route("api/v1/organisation")]
     public class OrganisationController : Controller
     {
@@ -21,6 +22,11 @@ namespace Backend_Bank.Controllers
             _tokRep = tokRep;
         }
 
+        /// <summary>
+        /// Authorizes organisation
+        /// </summary>
+        /// <param name="log"></param>
+        /// <remarks>Returns Access and Refresh Organisation tokens</remarks>
         [HttpPost("authorization")]
         public IActionResult Authorize([FromBody] LoginModel log)
         {
@@ -61,6 +67,11 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Registers new organisation
+        /// </summary>
+        /// <param name="log"></param>
+        /// <remarks>Returns Access and Refresh Organisation tokens</remarks>
         [HttpPost("registration")]
         public IActionResult Rgister([FromBody] OrgFullData ofd)
         {
@@ -101,6 +112,16 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Removes organisation
+        /// </summary>
+        /// <param name="log"></param>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// </remarks>
+        /// <returns>isSuccess = true</returns>
+        /// <response code="401">If token not provided</response>
+        /// <response code="403">If token is invalid</response>
         [Authorize(Policy.OrgAccess)]
         [HttpDelete("removeOrganisation")]
         public IActionResult Remove([FromBody] LoginModel log)
@@ -144,6 +165,17 @@ namespace Backend_Bank.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns personal data of organisation
+        /// </summary>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// 
+        /// Returns { str orgName, str legalAddress, str genDirector, str-datetime foundingDate }
+        /// </remarks>
+        /// <returns>isSuccess = true</returns>
+        /// <response code="401">If token not provided</response>
+        /// <response code="403">If token is invalid</response>
         [Authorize(Policy.OrgAccess)]
         [HttpGet("getPersonalData")]
         public IActionResult GetPersonalData()
@@ -167,6 +199,16 @@ namespace Backend_Bank.Controllers
             });
         }
 
+        /// <summary>
+        /// Changes personal data of organisation
+        /// </summary>
+        /// <param name="orgData"></param>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// </remarks>
+        /// <returns>isSuccess = true</returns>
+        /// <response code="401">If token not provided</response>
+        /// <response code="403">If token is invalid</response>
         [Authorize(Policy.OrgAccess)]
         [HttpPost("changePersonalData")]
         public IActionResult ChangePersonalData([FromBody] OrgData orgData)

@@ -8,6 +8,9 @@ using System.Security.Claims;
 
 namespace Backend_Bank.Controllers
 {
+    /// <response code="400">If error occured or provided data is invalid</response>
+    /// <response code="401">If token not provided</response>
+    /// <response code="403">If token is invalid</response>
     [Route("api/v1/token")]
     public class TokenController : Controller
     {
@@ -18,12 +21,25 @@ namespace Backend_Bank.Controllers
             _tokRep = tokRep;
         }
 
+        /// <summary>
+        /// Checks if Access toket is valid
+        /// </summary>
+        /// <remarks>
+        /// Requires any Access token
+        /// </remarks>
         [Authorize(Policy.Access)]
         [HttpPost("validate")]
         public IActionResult ValidateAccess()
         {
             return Ok(new { isSuccess = true });
         }
+
+        /// <summary>
+        /// Checks if Refresh toket is valid
+        /// </summary>
+        /// <remarks>
+        /// Requires any Refresh token
+        /// </remarks>
         [Authorize(Policy.Refresh)]
         [HttpPost("validate_refresh")]
         public IActionResult ValidateRefresh()
@@ -31,6 +47,14 @@ namespace Backend_Bank.Controllers
             return Ok(new { isSuccess = true });
         }
 
+        /// <summary>
+        /// Returns new Refresh and Access tokens of same type
+        /// </summary>
+        /// <remarks>
+        /// Requires any Refresh token
+        /// 
+        /// Invalidates current Refresh token
+        /// </remarks>
         [Authorize(Policy.Refresh)]
         [HttpGet("refresh_token")]
         public IActionResult GetTokens()
