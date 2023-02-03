@@ -1,5 +1,4 @@
 ﻿using Backend_Bank.Requirements;
-using Backend_Bank.Tokens;
 using Database.Interfaces;
 using Database.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -29,7 +28,14 @@ namespace Backend_Bank.Controllers
         /// <remarks>
         /// Requires Organisation Access token
         /// 
-        /// Returns { serviceId }
+        /// Service must be unique by pair of (organisationId, serviceName)
+        /// 
+        /// Returns:
+        /// 
+        ///     { 
+        ///         "serviceId": int
+        ///     }
+        ///     
         /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpPost("addService")]
@@ -80,9 +86,9 @@ namespace Backend_Bank.Controllers
         /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpDelete("removeService")]
-        public IActionResult RemoveService([FromBody] int serviceId)
+        public IActionResult RemoveService([FromBody] INT serviceId)
         {
-            Service? service = _serRep.GetItem(serviceId);
+            Service? service = _serRep.GetItem(serviceId.Id);
 
             if (service == null)
                 return BadRequest(new { error = "Service not exists.", isSuccess = false });
@@ -102,7 +108,7 @@ namespace Backend_Bank.Controllers
 
             try
             {
-                _serRep.Delete(serviceId);
+                _serRep.Delete(serviceId.Id);
                 _serRep.Save();
                 return Json(new { isSuccess = true });
             }
@@ -122,7 +128,21 @@ namespace Backend_Bank.Controllers
         /// <remarks>
         /// Requires Organisation Access token
         /// 
-        /// Returns [{ int id, int organisationId, str name, str description, str percent, str minLoanPeriod, str maxLoadPeriod, bool isOnline; }]
+        /// Returns: 
+        /// 
+        ///     [
+        ///         {
+        ///             "id": int,
+        ///             "organisationId": int,
+        ///             "name": str,
+        ///             "description": str,
+        ///             "percent": srt,
+        ///             "minLoanPeriod": str,
+        ///             "maxLoadPeriod": str,
+        ///             "isOnline": bool
+        ///         }
+        ///     ]
+        ///     
         /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpGet("getServices")]
@@ -147,6 +167,61 @@ namespace Backend_Bank.Controllers
                 return BadRequest(new
                 {
                     error = "Error while getting.",
+                    isSuccess = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Changes online state of service for current organistion
+        /// </summary>
+        /// <remarks>
+        /// Requires Organisation Access token
+        /// 
+        /// Returns:
+        /// 
+        ///     {
+        ///         "state": bool (changed)
+        ///     }
+        ///     
+        /// 
+        /// </remarks>
+        [Authorize(Policy.OrgAccess)]
+        [HttpPost("changeOnlineService")]
+        public IActionResult ChangeOnlineServices([FromBody] INT serviceId)
+        {
+            var login = User.FindFirstValue("Login");
+            if (login == null)
+                return BadRequest(new { error = "Invalid token.", isSuccess = false });
+
+            Organisation? organisation = _orgRep.GetOrganisationByLogin(login);
+            if (organisation == null)
+                return BadRequest(new { error = "Organisation not found.", isSuccess = false });
+
+            Service? service = _serRep.GetItem(serviceId.Id);
+            if (service == null)
+                return BadRequest(new { error = "Service not found.", isSuccess = false });
+
+            if (service.OrganisationId != organisation.Id)
+                return BadRequest(new { error = "Service of different organisation", isSuccess = false });
+
+            service.IsOnline = !service.IsOnline;
+
+            try
+            {
+                _serRep.Update(service);
+                _serRep.Save();
+                return Ok(new
+                {
+                    state = service.IsOnline,
+                    isSuccess = true
+                });
+            }
+            catch
+            {
+                return BadRequest(new
+                {
+                    error = "Error while savinfg.",
                     isSuccess = false
                 });
             }

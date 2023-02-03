@@ -26,7 +26,15 @@ namespace Backend_Bank.Controllers
         /// Authorizes organisation
         /// </summary>
         /// <param name="log"></param>
-        /// <remarks>Returns Access and Refresh Organisation tokens</remarks>
+        /// <remarks>
+        /// Returns Access and Refresh Organisation tokens:
+        /// 
+        ///     {
+        ///         "access_token": str,
+        ///         "refresh_token": str
+        ///     }
+        /// 
+        /// </remarks>
         [HttpPost("authorization")]
         public IActionResult Authorize([FromBody] LoginModel log)
         {
@@ -70,8 +78,16 @@ namespace Backend_Bank.Controllers
         /// <summary>
         /// Registers new organisation
         /// </summary>
-        /// <param name="log"></param>
-        /// <remarks>Returns Access and Refresh Organisation tokens</remarks>
+        /// <param name="ofd"></param>
+        /// <remarks>
+        /// Returns Access and Refresh Organisation tokens:
+        /// 
+        ///     {
+        ///         "access_token": str,
+        ///         "refresh_token": str
+        ///     }
+        /// 
+        /// </remarks>
         [HttpPost("registration")]
         public IActionResult Rgister([FromBody] OrgFullData ofd)
         {
@@ -171,7 +187,15 @@ namespace Backend_Bank.Controllers
         /// <remarks>
         /// Requires Organisation Access token
         /// 
-        /// Returns { str orgName, str legalAddress, str genDirector, str-datetime foundingDate }
+        /// Returns: 
+        /// 
+        ///     { 
+        ///         "orgName": str,
+        ///         "legalAddress": str,
+        ///         "genDirector": str,
+        ///         "foundingDate": str-datetime
+        ///     }
+        /// 
         /// </remarks>
         /// <returns>isSuccess = true</returns>
         /// <response code="401">If token not provided</response>
@@ -205,6 +229,16 @@ namespace Backend_Bank.Controllers
         /// <param name="orgData"></param>
         /// <remarks>
         /// Requires Organisation Access token
+        /// 
+        /// All input data is nullable (not to change):
+        /// 
+        ///     {
+        ///         "orgName": "string",
+        ///         "legalAddress": "string",
+        ///         "genDirector": null,
+        ///         "foundingDate": null
+        ///     }
+        /// 
         /// </remarks>
         /// <returns>isSuccess = true</returns>
         /// <response code="401">If token not provided</response>

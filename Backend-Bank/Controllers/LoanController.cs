@@ -74,7 +74,17 @@ namespace Backend_Bank.Controllers
         /// Returns all notifications by user phone number
         /// </summary>
         /// <remarks>
-        /// Returns [{ int notificationId, int userId, str description, str status }]
+        /// Returns:
+        /// 
+        ///     [
+        ///         { 
+        ///             "notificationId" : int,
+        ///             "userId": int,
+        ///             "description": str,
+        ///             "status": str
+        ///         }
+        ///     ]
+        /// 
         /// </remarks>
         [HttpGet("getAllNotification")]
         public IActionResult GetAllNotification(string phone)
@@ -106,6 +116,15 @@ namespace Backend_Bank.Controllers
         /// </summary>
         /// <remarks>
         /// Requires Organisation Access token
+        /// 
+        /// Input data, except id, is nullable (not to change):
+        /// 
+        ///     {
+        ///         "id": 0,
+        ///         "description": null,
+        ///         "status": "string"
+        ///     }
+        ///     
         /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpPost("changeNotification")]
@@ -139,7 +158,20 @@ namespace Backend_Bank.Controllers
         /// <remarks>
         /// Requires Organisation Access token
         /// 
-        /// Returns [{ int id, int userId, int serviceId, int amount, int period, int desctiption, int status }]
+        /// Returns: 
+        /// 
+        ///     [
+        ///         { 
+        ///             "id": int,
+        ///             "userId": int,
+        ///             "serviceId": int, 
+        ///             "amount": int, 
+        ///             "period": int,
+        ///             "desctiption": str,
+        ///             "status": str
+        ///         }
+        ///     ]
+        ///     
         /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpGet("getAllLoansByServiceId")]
@@ -156,15 +188,15 @@ namespace Backend_Bank.Controllers
         /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpDelete("removeNotification")]
-        public IActionResult RemoveNotification([FromBody] int notificationId)
+        public IActionResult RemoveNotification([FromBody] INT notificationId)
         {
-            var loan = _loanRep.GetItem(notificationId);
+            var loan = _loanRep.GetItem(notificationId.Id);
             if (loan == null)
                 return BadRequest(new { error = "Notification not exists", isSuccess = false });
 
             try
             {
-                _loanRep.Delete(notificationId);
+                _loanRep.Delete(notificationId.Id);
                 _loanRep.Save();
                 return Ok(new { isSuccess = true });
             }

@@ -32,7 +32,15 @@ namespace Backend_Bank.Controllers
         /// Authorizes user
         /// </summary>
         /// <param name="log"></param>
-        /// <remarks>Returns Access and Refresh User tokens</remarks>
+        /// <remarks>
+        /// Returns Access and Refresh User tokens:
+        /// 
+        ///     {
+        ///         "access_token": str,
+        ///         "refresh_token": str
+        ///     }
+        /// 
+        /// </remarks>
         [HttpPost("authorization")]
         public IActionResult Authorize([FromBody] LoginModel log)
         {
@@ -77,7 +85,15 @@ namespace Backend_Bank.Controllers
         /// Registers new user
         /// </summary>
         /// <param name="log"></param>
-        /// <remarks>Returns Access and Refresh User tokens</remarks>
+        /// <remarks>
+        /// Returns Access and Refresh User tokens:
+        /// 
+        ///     {
+        ///         "access_token": str,
+        ///         "refresh_token": str
+        ///     }
+        /// 
+        /// </remarks>
         [HttpPost("registration")]
         public IActionResult Rgister([FromBody] LoginModel log)
         {
@@ -182,7 +198,15 @@ namespace Backend_Bank.Controllers
         /// <remarks>
         /// Requires User Access token
         /// 
-        /// Returns { login, phone, email, fullname }
+        /// Returns:
+        /// 
+        ///     {
+        ///         "login": str,
+        ///         "phone": str,
+        ///         "email": str,
+        ///         "fullname": str
+        ///     }
+        /// 
         /// </remarks>
         /// <response code="401">If token not provided</response>
         /// <response code="403">If token is invalid</response>
@@ -214,6 +238,16 @@ namespace Backend_Bank.Controllers
         /// </summary>
         /// <remarks>
         /// Requires User Access token
+        /// 
+        /// All input data is nullable (not to change):
+        /// 
+        ///     {
+        ///       "phone": "string",
+        ///       "email": null,
+        ///       "fullName": null,
+        ///       "login": "string"
+        ///     }
+        /// 
         /// </remarks>
         /// <returns>
         /// isSuccess = true
@@ -268,7 +302,19 @@ namespace Backend_Bank.Controllers
         /// <remarks>
         /// Requires User Access token
         /// 
-        /// Returns  { int id, str serviceName, str description, str percent, str minLoanPeriod, str maxLoadPeriod }
+        /// Returns:  
+        /// 
+        ///     [
+        ///         {
+        ///             "id": int,
+        ///             "serviceName": str,
+        ///             "description": str,
+        ///             "percent": str,
+        ///             "minLoanPeriod": str,
+        ///             "maxLoadPeriod": str
+        ///         }
+        ///     ]
+        ///     
         /// </remarks>
         /// <response code="401">If token not provided</response>
         /// <response code="403">If token is invalid</response>
@@ -299,7 +345,20 @@ namespace Backend_Bank.Controllers
         /// 
         /// abs(Latitude) not greater 90
         /// 
-        /// Returns [{ int id, int organisationId, str name, str address, str phoneNumber, double longtitude, double latitude }]
+        /// Returns: 
+        /// 
+        ///     [
+        ///         {
+        ///             "id": int,
+        ///             "organisationId": int,
+        ///             "name": str,
+        ///             "address": str,
+        ///             "phoneNumber": str,
+        ///             "longtitude": double,
+        ///             "latitude": double
+        ///         }
+        ///     ]
+        /// 
         /// </remarks>
         /// <response code="401">If token not provided</response>
         /// <response code="403">If token is invalid</response>
@@ -317,7 +376,19 @@ namespace Backend_Bank.Controllers
         /// <remarks>
         /// Requires User Access token
         /// 
-        /// Returns [{ int id, str orgName, str name, str legalAddress, str genDirector, str-datetime foundingDate }]
+        /// Returns: 
+        /// 
+        ///     [
+        ///         { 
+        ///             "id": int, 
+        ///             "orgName": str, 
+        ///             "name": str, 
+        ///             "legalAddress": str, 
+        ///             "genDirector": str, 
+        ///             "foundingDate": str-datetime 
+        ///         }
+        ///     ]
+        /// 
         /// </remarks>
         /// <response code="401">If token not provided</response>
         /// <response code="403">If token is invalid</response>

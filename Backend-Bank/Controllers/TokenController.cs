@@ -22,7 +22,7 @@ namespace Backend_Bank.Controllers
         }
 
         /// <summary>
-        /// Checks if Access toket is valid
+        /// Checks if Access token is valid
         /// </summary>
         /// <remarks>
         /// Requires any Access token
@@ -35,7 +35,7 @@ namespace Backend_Bank.Controllers
         }
 
         /// <summary>
-        /// Checks if Refresh toket is valid
+        /// Checks if Refresh token is valid
         /// </summary>
         /// <remarks>
         /// Requires any Refresh token
@@ -54,6 +54,14 @@ namespace Backend_Bank.Controllers
         /// Requires any Refresh token
         /// 
         /// Invalidates current Refresh token
+        /// 
+        /// Returns Access and Refresh same tokens:
+        /// 
+        ///     {
+        ///         "access_token": str,
+        ///         "refresh_token": str
+        ///     }
+        /// 
         /// </remarks>
         [Authorize(Policy.Refresh)]
         [HttpGet("refresh_token")]

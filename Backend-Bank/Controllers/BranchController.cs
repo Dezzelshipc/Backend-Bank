@@ -29,7 +29,12 @@ namespace Backend_Bank.Controllers
         /// <remarks>
         /// Requires Organisation Access token
         /// 
-        /// Retturns { int branchId }
+        /// Returns:
+        /// 
+        ///     { 
+        ///         "branchId": int 
+        ///     }
+        /// 
         /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpPost("addBranch")]
@@ -81,9 +86,9 @@ namespace Backend_Bank.Controllers
         /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpDelete("removeBranch")]
-        public IActionResult RemoveBranch([FromBody] int branchId)
+        public IActionResult RemoveBranch([FromBody] INT branchId)
         {
-            Branch? branch = _brRep.GetItem(branchId);
+            Branch? branch = _brRep.GetItem(branchId.Id);
 
             if (branch == null)
                 return BadRequest(new { error = "Branch not exists.", isSuccess = false });
@@ -103,7 +108,7 @@ namespace Backend_Bank.Controllers
 
             try
             {
-                _brRep.Delete(branchId);
+                _brRep.Delete(branchId.Id);
                 _brRep.Save();
                 return Json(new { isSuccess = true });
             }
@@ -123,7 +128,20 @@ namespace Backend_Bank.Controllers
         /// <remarks>
         /// Requires Organisation Access token
         /// 
-        /// Returns [{ int id, int organisationId, str name, str address, str phoneNumber, double longtitude, double latitude}]
+        /// Returns: 
+        /// 
+        ///     [
+        ///         {
+        ///             "id": int,
+        ///             "organisationId": int,
+        ///             "name": str,
+        ///             "address": str,
+        ///             "phoneNumber": str,
+        ///             "longtitude": double,
+        ///             "latitude": double
+        ///         }
+        ///     ]
+        ///     
         /// </remarks>
         [Authorize(Policy.OrgAccess)]
         [HttpGet("getBranches")]

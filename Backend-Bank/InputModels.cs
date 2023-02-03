@@ -4,6 +4,10 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Backend_Bank
 {
+    public class INT
+    {
+        public int Id { get; set; }
+    }
 
     public class LoginModel
     {
@@ -46,20 +50,20 @@ namespace Backend_Bank
         public bool IsNotValid() => !IsValid();
     }
 
-    public class UserFullData : UserData
+    public class UserFullData
     {
-        public UserFullData(string login, string phone, string email, string fullName) : base(phone, email, fullName)
+        public UserFullData(string? login, string? phone, string? email, string? fullName)
         {
-            this.Login = login;
+            Login = login;
+            Phone = phone;
+            Email = email;
+            FullName = fullName;
         }
 
-        public string Login { get; set; }
-
-        override public bool IsValid()
-        {
-            return base.IsValid() &&
-                !Login.IsNullOrEmpty();
-        }
+        public string? Login { get; set; }
+        public string? Phone { get; set; }
+        public string? Email { get; set; }
+        public string? FullName { get; set; }
     }
 
     public class LoanData
