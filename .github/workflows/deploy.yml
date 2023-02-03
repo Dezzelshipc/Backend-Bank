@@ -46,3 +46,4 @@ jobs:
             git pull
             ./build_back.sh
             docker-compose up -d
+            docker exec bank-core_back_1 sh -c "cd /app/Database && dotnet build && dotnet ef database update -v --no-color --no-build"

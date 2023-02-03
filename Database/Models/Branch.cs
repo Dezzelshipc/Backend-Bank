@@ -39,6 +39,8 @@ namespace Database.Models
             Lattitude = lattitude;
         }
 
+        public Position() { }
+
         public bool IsValid()
         {
             return Math.Abs(Longtitude) <= 180 &&

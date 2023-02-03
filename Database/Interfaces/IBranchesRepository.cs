@@ -1,4 +1,5 @@
 ﻿using Database.Models;
+using System.Linq.Expressions;
 
 namespace Database.Interfaces
 {
@@ -6,5 +7,6 @@ namespace Database.Interfaces
     {
         public int Find(Branch branch);
         public IEnumerable<Branch> GetBranches(int organisationId);
+        public IEnumerable<Branch> OnDistande(double distanceKm, Position position);
     }
 }

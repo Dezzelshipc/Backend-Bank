@@ -15,12 +15,14 @@ namespace Backend_Bank.Controllers
         private readonly IUsersRepository _userRep;
         private readonly IServiceRepository _servRep;
         private readonly ITokenRepository _tokRep;
+        private readonly IBranchesRepository _brRep;
 
-        public AccountController(IUsersRepository userRep, IServiceRepository servRep, ITokenRepository tokRep)
+        public AccountController(IUsersRepository userRep, IServiceRepository servRep, ITokenRepository tokRep, IBranchesRepository brRep)
         {
             _userRep = userRep;
             _servRep = servRep;
             _tokRep = tokRep;
+            _brRep = brRep;
         }
 
         [HttpPost("authorization")]
@@ -179,7 +181,7 @@ namespace Backend_Bank.Controllers
         public IActionResult ChangePersonalData([FromBody] UserFullData userData)
         {
             if (userData == null)
-                return BadRequest(new { error = "Invalid input." });
+                return BadRequest(new { error = "Invalid input.", isSuccess = false });
 
             var old_login = User.FindFirstValue("Login");
 
@@ -211,7 +213,7 @@ namespace Backend_Bank.Controllers
             }
             catch
             {
-                return BadRequest(new { error = "Error while updating." });
+                return BadRequest(new { error = "Error while updating.", isSuccess = false });
             }
         }
 
@@ -232,10 +234,12 @@ namespace Backend_Bank.Controllers
             return Json(response);
         }
 
-        [HttpGet("getBranches")]
-        public IActionResult GetNearestBranches()//int distance, string position)
+        [HttpGet("getBranchesOnDistance")]
+        public IActionResult GetNearestBranches(double distanceKm, Position position)
         {
-            return BadRequest(error: "Not yet working");
+            var response = _brRep.OnDistande(distanceKm, position);
+
+            return Json(response);
         }
 
         /*[HttpGet("getServices")]

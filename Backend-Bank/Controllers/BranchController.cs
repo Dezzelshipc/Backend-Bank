@@ -122,7 +122,7 @@ namespace Backend_Bank.Controllers
             }
             catch
             {
-                return BadRequest(new { error = "Error." });
+                return BadRequest(new { error = "Error.", isSuccess = false });
             }
         }
     }

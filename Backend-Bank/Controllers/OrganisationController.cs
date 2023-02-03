@@ -126,7 +126,7 @@ namespace Backend_Bank.Controllers
             }
             catch
             {
-                return BadRequest(new { error = "Error while deleting." });
+                return BadRequest(new { error = "Error while deleting.", isSuccess = false });
             }
 
         }
@@ -140,7 +140,7 @@ namespace Backend_Bank.Controllers
             }
             catch
             {
-                return BadRequest(new { error = "Error." });
+                return BadRequest(new { error = "Error.", isSuccess = false });
             }
         }
 
@@ -200,7 +200,7 @@ namespace Backend_Bank.Controllers
             {
                 _orgRep.Update(organisation);
                 _orgRep.Save();
-                return Json(new { error = "", isSuccess = true });
+                return Json(new { isSuccess = true });
             }
             catch
             {
