@@ -1,8 +1,6 @@
 ﻿using Database.Converters;
-using Database.Migrations;
 using Database.Models;
 using Microsoft.IdentityModel.Tokens;
-using System.Numerics;
 
 namespace Backend_Bank
 {
@@ -66,21 +64,21 @@ namespace Backend_Bank
 
     public class LoanData
     {
-        public LoanData(int serviceId, int amountMonth, int period)
+        public LoanData(int serviceId, int amount, int period)
         {
             this.ServiceId = serviceId;
-            this.AmountMonth = amountMonth;
+            this.Amount = amount;
             this.Period = period;
         }
 
         public int ServiceId { get; set; }
-        public int AmountMonth { get; set; }
+        public int Amount { get; set; }
         public int Period { get; set; }
 
         public bool IsValid()
         {
             return ServiceId >= 0 &&
-                 AmountMonth >= 0 &&
+                 Amount >= 0 &&
                  Period >= 0;
         }
         public bool IsNotValid() => !IsValid();

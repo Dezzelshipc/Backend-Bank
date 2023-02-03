@@ -48,7 +48,7 @@ namespace Backend_Bank.Controllers
             if (userId == null)
                 return BadRequest(new { error = "Invalid token", isSuccess = false });
 
-            Loan loan = new(int.Parse(userId), loanData.ServiceId, loanData.AmountMonth, loanData.Period);
+            Loan loan = new(int.Parse(userId), loanData.ServiceId, loanData.Amount, loanData.Period);
 
             try
             {
@@ -112,11 +112,32 @@ namespace Backend_Bank.Controllers
                 return BadRequest(new { error = "Error while saving", isSuccess = false });
             }
         }
+
         [Authorize(Policy.OrgAccess)]
         [HttpGet("getAllLoansByServiceId")]
         public IActionResult ChangeNotification(int serviceId)
         {
             return Json(_loanRep.GetLoansByServiceId(serviceId).Select(a => a.WithFormatStatus()));
+        }
+
+        [Authorize(Policy.OrgAccess)]
+        [HttpDelete("removeNotification")]
+        public IActionResult RemoveNotification([FromBody] int notificationId)
+        {
+            var loan = _loanRep.GetItem(notificationId);
+            if (loan == null)
+                return BadRequest(new { error = "Notification not exists", isSuccess = false });
+
+            try
+            {
+                _loanRep.Delete(notificationId);
+                _loanRep.Save();
+                return Ok(new { isSuccess = true });
+            }
+            catch
+            {
+                return BadRequest(new { error = "Error while deleting", isSuccess = false });
+            }
         }
     }
 }

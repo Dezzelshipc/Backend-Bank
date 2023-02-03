@@ -5,18 +5,18 @@ namespace Database.Models
 
     public class Loan
     {
-        public Loan(int id, int userId, int serviceId, int amountMonth, int period, string desctiption, Statuses status)
+        public Loan(int id, int userId, int serviceId, int amount, int period, string desctiption, Statuses status)
         {
             Id = id;
             UserId = userId;
             ServiceId = serviceId;
-            AmountMonth = amountMonth;
+            Amount = amount;
             Period = period;
             Desctiption = desctiption;
             Status = status;
         }
 
-        public Loan(int userId, int serviceId, int amountMonth, int period) : this(0, userId, serviceId, amountMonth, period, string.Empty, Statuses.Pending) { }
+        public Loan(int userId, int serviceId, int amount, int period) : this(0, userId, serviceId, amount, period, string.Empty, Statuses.Pending) { }
 
         public enum Statuses
         {
@@ -26,7 +26,7 @@ namespace Database.Models
         public int Id { get; set; }
         public int UserId { get; set; }
         public int ServiceId { get; set; }
-        public int AmountMonth { get; set; }
+        public int Amount { get; set; }
         public int Period { get; set; }
         public string Desctiption { get; set; }
         public Statuses Status { get; set; }
@@ -38,7 +38,7 @@ namespace Database.Models
                 Id,
                 UserId,
                 ServiceId,
-                AmountMonth,
+                Amount,
                 Period,
                 Desctiption,
                 Status = Status.GetString()
