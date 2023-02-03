@@ -62,7 +62,6 @@ namespace Backend_Bank.Controllers
             }
         }
 
-        [Authorize(Policy.UserAccess)]
         [HttpGet("getAllNotification")]
         public IActionResult GetAllNotification(string phone)
         {
