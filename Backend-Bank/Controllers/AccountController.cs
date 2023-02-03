@@ -16,13 +16,15 @@ namespace Backend_Bank.Controllers
         private readonly IServiceRepository _servRep;
         private readonly ITokenRepository _tokRep;
         private readonly IBranchesRepository _brRep;
+        private readonly IOrganisationsRepository _orgRep;
 
-        public AccountController(IUsersRepository userRep, IServiceRepository servRep, ITokenRepository tokRep, IBranchesRepository brRep)
+        public AccountController(IUsersRepository userRep, IServiceRepository servRep, ITokenRepository tokRep, IBranchesRepository brRep, IOrganisationsRepository orgRep)
         {
             _userRep = userRep;
             _servRep = servRep;
             _tokRep = tokRep;
             _brRep = brRep;
+            _orgRep = orgRep;
         }
 
         [HttpPost("authorization")]
@@ -242,15 +244,26 @@ namespace Backend_Bank.Controllers
             return Json(response);
         }
 
-        /*[HttpGet("getServices")]
-        public IActionResult GetServices(int id)
+
+        [Authorize(Policy.UserAccess)]
+        [HttpGet("getAllOrganisations")]
+        public IActionResult GetAllOrgs()
         {
-            if (id < 0)
-                return BadRequest(new { error = "Invalid Id." });
-
-            var services = _servRep.GetServices(id);
-
-            return Json(services);
-        }*/
+            try
+            {
+                return Json(_orgRep.GetAll().Select(a => new
+                {
+                    a.Id,
+                    a.OrgName,
+                    a.LegalAddress,
+                    a.GenDirector,
+                    a.FoundingDate
+                }));
+            }
+            catch
+            {
+                return BadRequest(new { error = "Error.", isSuccess = false });
+            }
+        }
     }
 }
